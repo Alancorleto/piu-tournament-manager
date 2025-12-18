@@ -4,18 +4,27 @@ import (
 	"net/http"
 
 	"github.com/alancorleto/piu-tournament-manager/internal/database"
-	"github.com/alancorleto/piu-tournament-manager/internal/http/server/handlers"
 )
 
 type Server struct {
+	http.Server
 	db *database.Queries
 }
 
-// New returns an *http.Server configured with the package's handlers.
-func New(addr string, db *database.Queries) *http.Server {
+// New returns a *Server configured with the package's handlers.
+func New(addr string, db *database.Queries) *Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/hello", handlers.HelloHandler)
-	mux.HandleFunc("/health", handlers.HealthHandler)
 
-	return &http.Server{Addr: addr, Handler: mux}
+	server := Server{
+		Server: http.Server{
+			Addr:    addr,
+			Handler: mux,
+		},
+		db: db,
+	}
+
+	mux.HandleFunc("/hello", server.HelloHandler)
+	mux.HandleFunc("/health", server.HealthHandler)
+
+	return &server
 }

@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"net/http"
@@ -10,7 +10,6 @@ type helloMessage struct {
 	Message string `json:"message"`
 }
 
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func (s *Server) HelloHandler(w http.ResponseWriter, r *http.Request) {
 	json.RespondWithJSON(w, 200, helloMessage{Message: "Hello world!"})
 }

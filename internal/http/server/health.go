@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"net/http"
@@ -10,7 +10,6 @@ type healthMessage struct {
 	Status string `json:"status"`
 }
 
-func HealthHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func (s *Server) HealthHandler(w http.ResponseWriter, r *http.Request) {
 	json.RespondWithJSON(w, 200, healthMessage{Status: "ok"})
 }
