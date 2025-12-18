@@ -1,24 +1,31 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/alancorleto/piu-tournament-manager/internal/database"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/server"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080"
-	} else if port[0] != ':' {
-		port = ":" + port
+	godotenv.Load()
+
+	port := ":" + os.Getenv("PORT")
+	dbURL := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	srv := server.New(port)
+	dbQueries := database.New(db)
+	srv := server.New(port, dbQueries)
 
 	go func() {
 		log.Printf("Listening on %s", srv.Addr)
