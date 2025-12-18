@@ -12,12 +12,13 @@ import (
 )
 
 type Player struct {
-	ID          uuid.UUID
-	Nickname    string
-	Name        string
-	TeamName    sql.NullString
-	CountryCode string
-	City        sql.NullString
-	CreatedAt   time.Time
-	ModifiedAt  time.Time
+	ID                uuid.UUID
+	Nickname          string
+	Name              sql.NullString
+	TeamName          sql.NullString
+	CountryCode       sql.NullString
+	City              sql.NullString
+	ProfilePictureUrl sql.NullString
+	CreatedAt         time.Time
+	ModifiedAt        time.Time
 }

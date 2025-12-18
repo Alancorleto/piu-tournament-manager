@@ -8,37 +8,33 @@ package database
 import (
 	"context"
 	"database/sql"
-
-	"github.com/google/uuid"
 )
 
 const createPlayer = `-- name: CreatePlayer :one
 INSERT INTO players (id, nickname, name, team_name, country_code, city, created_at, modified_at)
 VALUES (
+    gen_random_uuid(),
     $1,
     $2,
     $3,
     $4,
     $5,
-    $6,
     NOW(),
     NOW()
 )
-RETURNING id, nickname, name, team_name, country_code, city, created_at, modified_at
+RETURNING id, nickname, name, team_name, country_code, city, profile_picture_url, created_at, modified_at
 `
 
 type CreatePlayerParams struct {
-	ID          uuid.UUID
 	Nickname    string
-	Name        string
+	Name        sql.NullString
 	TeamName    sql.NullString
-	CountryCode string
+	CountryCode sql.NullString
 	City        sql.NullString
 }
 
 func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Player, error) {
 	row := q.db.QueryRowContext(ctx, createPlayer,
-		arg.ID,
 		arg.Nickname,
 		arg.Name,
 		arg.TeamName,
@@ -53,6 +49,7 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 		&i.TeamName,
 		&i.CountryCode,
 		&i.City,
+		&i.ProfilePictureUrl,
 		&i.CreatedAt,
 		&i.ModifiedAt,
 	)
