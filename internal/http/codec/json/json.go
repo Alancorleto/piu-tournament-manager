@@ -22,7 +22,7 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+	w.Write(append(response, '\n'))
 
 	return nil
 }
