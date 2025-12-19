@@ -8,6 +8,8 @@ package database
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createPlayer = `-- name: CreatePlayer :one
@@ -93,4 +95,50 @@ func (q *Queries) ListPlayers(ctx context.Context) ([]Player, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePlayer = `-- name: UpdatePlayer :one
+UPDATE players
+SET
+    nickname = COALESCE($2, nickname),
+    name = COALESCE($3, name),
+    team_name = COALESCE($4, team_name),
+    country_code = COALESCE($5, country_code),
+    city = COALESCE($6, city),
+    modified_at = NOW()
+WHERE id = $1
+RETURNING id, nickname, name, team_name, country_code, city, profile_picture_url, created_at, modified_at
+`
+
+type UpdatePlayerParams struct {
+	ID          uuid.UUID
+	Nickname    sql.NullString
+	Name        sql.NullString
+	TeamName    sql.NullString
+	CountryCode sql.NullString
+	City        sql.NullString
+}
+
+func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (Player, error) {
+	row := q.db.QueryRowContext(ctx, updatePlayer,
+		arg.ID,
+		arg.Nickname,
+		arg.Name,
+		arg.TeamName,
+		arg.CountryCode,
+		arg.City,
+	)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Name,
+		&i.TeamName,
+		&i.CountryCode,
+		&i.City,
+		&i.ProfilePictureUrl,
+		&i.CreatedAt,
+		&i.ModifiedAt,
+	)
+	return i, err
 }

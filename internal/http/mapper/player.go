@@ -5,6 +5,7 @@ import (
 
 	"github.com/alancorleto/piu-tournament-manager/internal/database"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
+	"github.com/google/uuid"
 )
 
 // PlayerResponse maps a database.Player to a dto.PlayerResponse.
@@ -33,6 +34,17 @@ func CreatePlayerParams(req dto.CreatePlayerRequest) database.CreatePlayerParams
 	}
 }
 
+func UpdatePlayerParams(id uuid.UUID, req dto.UpdatePlayerRequest) database.UpdatePlayerParams {
+	return database.UpdatePlayerParams{
+		ID:          id,
+		Nickname:    toNullString(req.Nickname),
+		Name:        toNullString(req.Name),
+		TeamName:    toNullString(req.TeamName),
+		CountryCode: toNullString(req.CountryCode),
+		City:        toNullString(req.City),
+	}
+}
+
 func toNullString(s *string) sql.NullString {
 	if s == nil {
 		return sql.NullString{Valid: false}
@@ -45,4 +57,12 @@ func fromNullString(ns sql.NullString) *string {
 		return nil
 	}
 	return &ns.String
+}
+
+func ParseUUID(s string) uuid.UUID {
+	parsed, err := uuid.Parse(s)
+	if err != nil {
+		return uuid.Nil
+	}
+	return parsed
 }

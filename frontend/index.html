@@ -29,7 +29,7 @@
       </div>
       <div>
         <label>Nombre real</label>
-        <input id="name" />
+        <input id="real_name" />
       </div>
       <div>
         <label>Equipo</label>
@@ -101,15 +101,15 @@ async function savePlayer(e) {
 
   const id = document.getElementById('player-id').value;
   const payload = {
-    nickname: nickname.value,
-    name: name.value || null,
+    nickname: nickname.value || null,
+    name: real_name.value || null,
     team_name: team_name.value || null,
     country_code: country_code.value || null,
     city: city.value || null,
     profile_picture_url: profile_picture_url.value || null
   };
 
-  const method = id ? 'PUT' : 'POST';
+  const method = id ? 'PATCH' : 'POST';
   const url = id ? `${API_BASE}/${id}` : API_BASE;
 
   // print the method to console
@@ -128,7 +128,7 @@ async function savePlayer(e) {
 function editPlayer(p) {
   document.getElementById('player-id').value = p.id;
   nickname.value = p.nickname;
-  name.value = p.name ?? '';
+  real_name.value = p.name ?? '';
   team_name.value = p.team_name ?? '';
   country_code.value = p.country_code ?? '';
   city.value = p.city ?? '';

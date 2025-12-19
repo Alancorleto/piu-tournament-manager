@@ -14,6 +14,14 @@ type CreatePlayerRequest struct {
 	City        *string `json:"city"`
 }
 
+type UpdatePlayerRequest struct {
+	Nickname    *string `json:"nickname"`
+	Name        *string `json:"name"`
+	TeamName    *string `json:"team_name"`
+	CountryCode *string `json:"country_code"`
+	City        *string `json:"city"`
+}
+
 type PlayerResponse struct {
 	ID                uuid.UUID `json:"id"`
 	Nickname          string    `json:"nickname"`
