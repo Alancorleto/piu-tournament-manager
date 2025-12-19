@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alancorleto/piu-tournament-manager/internal/database"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/codec/json"
+	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
+	"github.com/alancorleto/piu-tournament-manager/internal/http/mapper"
 	"github.com/google/uuid"
 )
 
@@ -23,49 +24,22 @@ type Player struct {
 }
 
 func (s *Server) PostPlayersHandler(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Nickname    string  `json:"nickname"`
-		Name        *string `json:"name"`
-		TeamName    *string `json:"team_name"`
-		CountryCode *string `json:"country_code"`
-		City        *string `json:"city"`
-	}
-
-	params, err := json.ParseRequestParameters[parameters](r)
+	requestParams, err := json.ParseRequestParameters[dto.CreatePlayerRequest](r)
 	if err != nil {
-		json.RespondWithError(w, 400, fmt.Sprintf("Error decoding parameters: %s", err))
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error decoding parameters: %s", err))
 		return
 	}
 
+	createPlayerParams := mapper.CreatePlayerParams(requestParams)
 	player, err := s.db.CreatePlayer(
 		r.Context(),
-		database.CreatePlayerParams{
-			Nickname:    params.Nickname,
-			Name:        toNullString(params.Name),
-			TeamName:    toNullString(params.TeamName),
-			CountryCode: toNullString(params.CountryCode),
-			City:        toNullString(params.City),
-		},
+		createPlayerParams,
 	)
-
 	if err != nil {
-		json.RespondWithError(w, 500, fmt.Sprintf("Error creating player: %s", err))
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error creating player: %s", err))
 		return
 	}
 
-	json.RespondWithJSON(w, 201, databasePlayerToServerPlayer(player))
-}
-
-func databasePlayerToServerPlayer(dbPlayer database.Player) Player {
-	return Player{
-		ID:                dbPlayer.ID,
-		Nickname:          dbPlayer.Nickname,
-		Name:              fromNullString(dbPlayer.Name),
-		TeamName:          fromNullString(dbPlayer.TeamName),
-		CountryCode:       fromNullString(dbPlayer.CountryCode),
-		City:              fromNullString(dbPlayer.City),
-		ProfilePictureUrl: fromNullString(dbPlayer.ProfilePictureUrl),
-		CreatedAt:         dbPlayer.CreatedAt,
-		ModifiedAt:        dbPlayer.ModifiedAt,
-	}
+	response := mapper.PlayerResponse(player)
+	json.RespondWithJSON(w, http.StatusCreated, response)
 }
