@@ -55,3 +55,42 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 	)
 	return i, err
 }
+
+const getPlayers = `-- name: GetPlayers :many
+SELECT id, nickname, name, team_name, country_code, city, profile_picture_url, created_at, modified_at
+FROM players
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
+	rows, err := q.db.QueryContext(ctx, getPlayers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Player
+	for rows.Next() {
+		var i Player
+		if err := rows.Scan(
+			&i.ID,
+			&i.Nickname,
+			&i.Name,
+			&i.TeamName,
+			&i.CountryCode,
+			&i.City,
+			&i.ProfilePictureUrl,
+			&i.CreatedAt,
+			&i.ModifiedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

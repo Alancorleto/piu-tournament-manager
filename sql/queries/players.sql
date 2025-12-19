@@ -11,3 +11,8 @@ VALUES (
     NOW()
 )
 RETURNING *;
+
+-- name: GetPlayers :many
+SELECT *
+FROM players
+ORDER BY created_at DESC;
