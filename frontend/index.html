@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>PIUTM – Players CRUD</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; max-width: 900px; margin: auto; }
+    h1 { margin-bottom: 8px; }
+    form, table { margin-top: 24px; }
+    input { padding: 6px; margin: 4px 0; width: 100%; }
+    button { padding: 6px 12px; margin-right: 8px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    tr.selected { background: #eef; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  </style>
+</head>
+<body>
+  <h1>PIU Tournament Manager</h1>
+  <p>Frontend mínimo para testear CRUD de <b>Players</b></p>
+
+  <form id="player-form">
+    <input type="hidden" id="player-id" />
+
+    <div class="row">
+      <div>
+        <label>Nickname*</label>
+        <input id="nickname" required />
+      </div>
+      <div>
+        <label>Nombre real</label>
+        <input id="name" />
+      </div>
+      <div>
+        <label>Equipo</label>
+        <input id="team_name" />
+      </div>
+      <div>
+        <label>País (ISO-2)</label>
+        <input id="country_code" maxlength="2" />
+      </div>
+      <div>
+        <label>Ciudad</label>
+        <input id="city" />
+      </div>
+      <div>
+        <label>Foto (URL)</label>
+        <input id="profile_picture_url" />
+      </div>
+    </div>
+
+    <div style="margin-top: 12px">
+      <button type="submit">Guardar</button>
+      <button type="button" onclick="resetForm()">Cancelar</button>
+    </div>
+  </form>
+
+  <table id="players-table">
+    <thead>
+      <tr>
+        <th>Nickname</th>
+        <th>Nombre</th>
+        <th>Equipo</th>
+        <th>País</th>
+        <th>Ciudad</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const API_BASE = 'http://localhost:8080/players'; // ajustá el puerto/ruta
+
+async function fetchPlayers() {
+  const res = await fetch(API_BASE);
+  const players = await res.json();
+
+  const tbody = document.querySelector('#players-table tbody');
+  tbody.innerHTML = '';
+
+  players.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.nickname}</td>
+      <td>${p.name ?? ''}</td>
+      <td>${p.team_name ?? ''}</td>
+      <td>${p.country_code ?? ''}</td>
+      <td>${p.city ?? ''}</td>
+      <td>
+        <button onclick='editPlayer(${JSON.stringify(p)})'>Editar</button>
+        <button onclick='deletePlayer("${p.id}")'>Borrar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function savePlayer(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('player-id').value;
+  const payload = {
+    nickname: nickname.value,
+    name: name.value || null,
+    team_name: team_name.value || null,
+    country_code: country_code.value || null,
+    city: city.value || null,
+    profile_picture_url: profile_picture_url.value || null
+  };
+
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `${API_BASE}/${id}` : API_BASE;
+
+  await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  resetForm();
+  fetchPlayers();
+}
+
+function editPlayer(p) {
+  document.getElementById('player-id').value = p.id;
+  nickname.value = p.nickname;
+  name.value = p.name ?? '';
+  team_name.value = p.team_name ?? '';
+  country_code.value = p.country_code ?? '';
+  city.value = p.city ?? '';
+  profile_picture_url.value = p.profile_picture_url ?? '';
+}
+
+async function deletePlayer(id) {
+  if (!confirm('¿Seguro?')) return;
+  await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+  fetchPlayers();
+}
+
+function resetForm() {
+  document.getElementById('player-id').value = '';
+  document.getElementById('player-form').reset();
+}
+
+document.getElementById('player-form').addEventListener('submit', savePlayer);
+fetchPlayers();
+</script>
+</body>
+</html>
