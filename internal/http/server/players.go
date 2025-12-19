@@ -100,3 +100,26 @@ func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (s *Server) GetPlayer(w http.ResponseWriter, r *http.Request) {
+	playerIDString := r.PathValue("id")
+	if playerIDString == "" {
+		json.RespondWithError(w, http.StatusBadRequest, "Missing player ID in URL")
+		return
+	}
+
+	playerID := mapper.ParseUUID(playerIDString)
+	if playerID == uuid.Nil {
+		json.RespondWithError(w, http.StatusBadRequest, "Invalid player ID format")
+		return
+	}
+
+	player, err := s.db.GetPlayer(r.Context(), playerID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error retrieving player: %s", err))
+		return
+	}
+
+	response := mapper.PlayerResponse(player)
+	json.RespondWithJSON(w, http.StatusOK, response)
+}

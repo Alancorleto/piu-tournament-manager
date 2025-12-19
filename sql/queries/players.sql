@@ -32,3 +32,8 @@ RETURNING *;
 -- name: DeletePlayer :exec
 DELETE FROM players
 WHERE id = $1;
+
+-- name: GetPlayer :one
+SELECT *
+FROM players
+WHERE id = $1;

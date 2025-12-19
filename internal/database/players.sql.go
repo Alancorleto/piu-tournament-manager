@@ -68,6 +68,29 @@ func (q *Queries) DeletePlayer(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getPlayer = `-- name: GetPlayer :one
+SELECT id, nickname, name, team_name, country_code, city, profile_picture_url, created_at, modified_at
+FROM players
+WHERE id = $1
+`
+
+func (q *Queries) GetPlayer(ctx context.Context, id uuid.UUID) (Player, error) {
+	row := q.db.QueryRowContext(ctx, getPlayer, id)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Name,
+		&i.TeamName,
+		&i.CountryCode,
+		&i.City,
+		&i.ProfilePictureUrl,
+		&i.CreatedAt,
+		&i.ModifiedAt,
+	)
+	return i, err
+}
+
 const listPlayers = `-- name: ListPlayers :many
 SELECT id, nickname, name, team_name, country_code, city, profile_picture_url, created_at, modified_at
 FROM players
