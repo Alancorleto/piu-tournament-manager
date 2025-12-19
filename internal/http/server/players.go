@@ -9,7 +9,7 @@ import (
 	"github.com/alancorleto/piu-tournament-manager/internal/http/mapper"
 )
 
-func (s *Server) PostPlayersHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreatePlayer(w http.ResponseWriter, r *http.Request) {
 	requestParams, err := json.ParseRequestParameters[dto.CreatePlayerRequest](r)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error decoding parameters: %s", err))
