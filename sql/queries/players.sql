@@ -12,7 +12,7 @@ VALUES (
 )
 RETURNING *;
 
--- name: GetPlayers :many
+-- name: ListPlayers :many
 SELECT *
 FROM players
 ORDER BY created_at DESC;

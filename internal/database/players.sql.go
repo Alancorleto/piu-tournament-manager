@@ -56,14 +56,14 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 	return i, err
 }
 
-const getPlayers = `-- name: GetPlayers :many
+const listPlayers = `-- name: ListPlayers :many
 SELECT id, nickname, name, team_name, country_code, city, profile_picture_url, created_at, modified_at
 FROM players
 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayers)
+func (q *Queries) ListPlayers(ctx context.Context) ([]Player, error) {
+	rows, err := q.db.QueryContext(ctx, listPlayers)
 	if err != nil {
 		return nil, err
 	}

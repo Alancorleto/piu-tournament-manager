@@ -70,7 +70,7 @@
   </table>
 
 <script>
-const API_BASE = 'http://localhost:8080/players'; // ajustá el puerto/ruta
+const API_BASE = 'http://localhost:8080/api/players'; // ajustá el puerto/ruta
 
 async function fetchPlayers() {
   const res = await fetch(API_BASE);
@@ -111,6 +111,9 @@ async function savePlayer(e) {
 
   const method = id ? 'PUT' : 'POST';
   const url = id ? `${API_BASE}/${id}` : API_BASE;
+
+  // print the method to console
+  console.log(`Saving player with url: ${url} and method: ${method}`);
 
   await fetch(url, {
     method,
