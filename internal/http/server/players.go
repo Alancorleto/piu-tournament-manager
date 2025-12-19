@@ -78,3 +78,25 @@ func (s *Server) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 	response := mapper.PlayerResponse(player)
 	json.RespondWithJSON(w, http.StatusOK, response)
 }
+
+func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
+	playerIDString := r.PathValue("id")
+	if playerIDString == "" {
+		json.RespondWithError(w, http.StatusBadRequest, "Missing player ID in URL")
+		return
+	}
+
+	playerID := mapper.ParseUUID(playerIDString)
+	if playerID == uuid.Nil {
+		json.RespondWithError(w, http.StatusBadRequest, "Invalid player ID format")
+		return
+	}
+
+	err := s.db.DeletePlayer(r.Context(), playerID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error deleting player: %s", err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

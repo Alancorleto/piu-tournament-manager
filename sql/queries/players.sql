@@ -28,3 +28,7 @@ SET
     modified_at = NOW()
 WHERE id = $1
 RETURNING *;
+
+-- name: DeletePlayer :exec
+DELETE FROM players
+WHERE id = $1;

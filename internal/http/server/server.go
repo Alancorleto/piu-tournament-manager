@@ -28,6 +28,7 @@ func New(addr string, db *database.Queries) *Server {
 	mux.HandleFunc("POST /api/players", server.CreatePlayer)
 	mux.HandleFunc("GET /api/players", server.ListPlayers)
 	mux.HandleFunc("PATCH /api/players/{id}", server.UpdatePlayer)
+	mux.HandleFunc("DELETE /api/players/{id}", server.DeletePlayer)
 
 	return &server
 }
