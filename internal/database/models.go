@@ -22,3 +22,10 @@ type Player struct {
 	CreatedAt         time.Time
 	ModifiedAt        time.Time
 }
+
+type Tournament struct {
+	ID        uuid.UUID
+	Name      string
+	Location  sql.NullString
+	StartDate time.Time
+}
