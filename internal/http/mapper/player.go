@@ -1,8 +1,6 @@
 package mapper
 
 import (
-	"database/sql"
-
 	"github.com/alancorleto/piu-tournament-manager/internal/database"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
 	"github.com/google/uuid"
@@ -43,26 +41,4 @@ func UpdatePlayerParams(id uuid.UUID, req dto.UpdatePlayerRequest) database.Upda
 		CountryCode: toNullString(req.CountryCode),
 		City:        toNullString(req.City),
 	}
-}
-
-func toNullString(s *string) sql.NullString {
-	if s == nil {
-		return sql.NullString{Valid: false}
-	}
-	return sql.NullString{String: *s, Valid: true}
-}
-
-func fromNullString(ns sql.NullString) *string {
-	if !ns.Valid {
-		return nil
-	}
-	return &ns.String
-}
-
-func ParseUUID(s string) uuid.UUID {
-	parsed, err := uuid.Parse(s)
-	if err != nil {
-		return uuid.Nil
-	}
-	return parsed
 }
