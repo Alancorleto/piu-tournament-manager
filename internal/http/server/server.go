@@ -24,12 +24,18 @@ func New(addr string, db *database.Queries) *Server {
 	}
 
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("frontend"))))
+
 	mux.HandleFunc("GET /api/health", server.GetHealth)
 	mux.HandleFunc("POST /api/players", server.CreatePlayer)
 	mux.HandleFunc("GET /api/players", server.ListPlayers)
 	mux.HandleFunc("GET /api/players/{id}", server.GetPlayer)
 	mux.HandleFunc("PATCH /api/players/{id}", server.UpdatePlayer)
 	mux.HandleFunc("DELETE /api/players/{id}", server.DeletePlayer)
+
+	mux.HandleFunc("POST /api/tournaments", server.CreateTournament)
+	mux.HandleFunc("GET /api/tournaments", server.ListTournaments)
+	mux.HandleFunc("PATCH /api/tournaments/{id}", server.UpdateTournament)
+	mux.HandleFunc("DELETE /api/tournaments/{id}", server.DeleteTournament)
 
 	return &server
 }

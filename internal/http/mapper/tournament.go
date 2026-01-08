@@ -1,6 +1,8 @@
 package mapper
 
 import (
+	"time"
+
 	"github.com/alancorleto/piu-tournament-manager/internal/database"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
 	"github.com/google/uuid"
@@ -12,7 +14,7 @@ func TournamentResponse(dbTournament database.Tournament) dto.TournamentResponse
 		ID:        dbTournament.ID,
 		Name:      dbTournament.Name,
 		Location:  fromNullString(dbTournament.Location),
-		StartDate: dbTournament.StartDate,
+		StartDate: dbTournament.StartDate.Unix(),
 	}
 }
 
@@ -20,15 +22,16 @@ func CreateTournamentParams(req dto.CreateTournamentRequest) database.CreateTour
 	return database.CreateTournamentParams{
 		Name:      req.Name,
 		Location:  toNullString(req.Location),
-		StartDate: req.StartDate,
+		StartDate: time.Unix(req.StartDate, 0).UTC(),
 	}
 }
 
 func UpdateTournamentParams(id uuid.UUID, req dto.UpdateTournamentRequest) database.UpdateTournamentParams {
+	reqTime := time.Unix(req.StartDate, 0).UTC()
 	return database.UpdateTournamentParams{
 		ID:        id,
 		Name:      toNullString(req.Name),
 		Location:  toNullString(req.Location),
-		StartDate: toNullTime(&req.StartDate),
+		StartDate: toNullTime(&reqTime),
 	}
 }

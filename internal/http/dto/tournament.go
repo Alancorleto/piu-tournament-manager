@@ -1,26 +1,24 @@
 package dto
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 )
 
 type CreateTournamentRequest struct {
-	Name      string    `json:"name"`
-	Location  *string   `json:"location"`
-	StartDate time.Time `json:"start_date"`
+	Name      string  `json:"name"`
+	Location  *string `json:"location"`
+	StartDate int64   `json:"start_date"`
 }
 
 type UpdateTournamentRequest struct {
-	Name      *string   `json:"name"`
-	Location  *string   `json:"location"`
-	StartDate time.Time `json:"start_date"`
+	Name      *string `json:"name"`
+	Location  *string `json:"location"`
+	StartDate int64   `json:"start_date"`
 }
 
 type TournamentResponse struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Location  *string   `json:"location"`
-	StartDate time.Time `json:"start_date"`
+	StartDate int64     `json:"start_date"`
 }
