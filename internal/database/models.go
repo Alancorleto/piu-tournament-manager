@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type Category struct {
+	ID   uuid.UUID
+	Name string
+}
+
 type Player struct {
 	ID                uuid.UUID
 	Nickname          string
@@ -27,5 +32,5 @@ type Tournament struct {
 	ID        uuid.UUID
 	Name      string
 	Location  sql.NullString
-	StartDate time.Time
+	StartDate sql.NullTime
 }

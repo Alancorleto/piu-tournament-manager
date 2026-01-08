@@ -14,15 +14,16 @@ func TournamentResponse(dbTournament database.Tournament) dto.TournamentResponse
 		ID:        dbTournament.ID,
 		Name:      dbTournament.Name,
 		Location:  fromNullString(dbTournament.Location),
-		StartDate: dbTournament.StartDate.Unix(),
+		StartDate: fromNullTime(dbTournament.StartDate).Unix(),
 	}
 }
 
 func CreateTournamentParams(req dto.CreateTournamentRequest) database.CreateTournamentParams {
+	reqTime := time.Unix(req.StartDate, 0).UTC()
 	return database.CreateTournamentParams{
 		Name:      req.Name,
 		Location:  toNullString(req.Location),
-		StartDate: time.Unix(req.StartDate, 0).UTC(),
+		StartDate: toNullTime(&reqTime),
 	}
 }
 

@@ -8,7 +8,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -27,7 +26,7 @@ RETURNING id, name, location, start_date
 type CreateTournamentParams struct {
 	Name      string
 	Location  sql.NullString
-	StartDate time.Time
+	StartDate sql.NullTime
 }
 
 func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentParams) (Tournament, error) {
