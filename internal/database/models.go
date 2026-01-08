@@ -12,8 +12,9 @@ import (
 )
 
 type Category struct {
-	ID   uuid.UUID
-	Name string
+	ID           uuid.UUID
+	Name         string
+	TournamentID uuid.UUID
 }
 
 type Player struct {

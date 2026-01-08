@@ -1,8 +1,9 @@
 -- name: CreateCategory :one
-INSERT INTO categories (id, name)
+INSERT INTO categories (id, name, tournament_id)
 VALUES (
     gen_random_uuid(),
-    $1
+    $1,
+    $2
 )
 RETURNING *;
 
@@ -25,3 +26,8 @@ WHERE id = $1;
 SELECT *
 FROM categories
 WHERE id = $1;
+
+-- name: ListCategoriesByTournament :many
+SELECT *
+FROM categories
+WHERE tournament_id = $1;

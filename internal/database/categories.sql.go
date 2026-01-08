@@ -13,18 +13,24 @@ import (
 )
 
 const createCategory = `-- name: CreateCategory :one
-INSERT INTO categories (id, name)
+INSERT INTO categories (id, name, tournament_id)
 VALUES (
     gen_random_uuid(),
-    $1
+    $1,
+    $2
 )
-RETURNING id, name
+RETURNING id, name, tournament_id
 `
 
-func (q *Queries) CreateCategory(ctx context.Context, name string) (Category, error) {
-	row := q.db.QueryRowContext(ctx, createCategory, name)
+type CreateCategoryParams struct {
+	Name         string
+	TournamentID uuid.UUID
+}
+
+func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
+	row := q.db.QueryRowContext(ctx, createCategory, arg.Name, arg.TournamentID)
 	var i Category
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Name, &i.TournamentID)
 	return i, err
 }
 
@@ -39,7 +45,7 @@ func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 }
 
 const getCategory = `-- name: GetCategory :one
-SELECT id, name
+SELECT id, name, tournament_id
 FROM categories
 WHERE id = $1
 `
@@ -47,12 +53,12 @@ WHERE id = $1
 func (q *Queries) GetCategory(ctx context.Context, id uuid.UUID) (Category, error) {
 	row := q.db.QueryRowContext(ctx, getCategory, id)
 	var i Category
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Name, &i.TournamentID)
 	return i, err
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, name
+SELECT id, name, tournament_id
 FROM categories
 `
 
@@ -65,7 +71,36 @@ func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
 	var items []Category
 	for rows.Next() {
 		var i Category
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.TournamentID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCategoriesByTournament = `-- name: ListCategoriesByTournament :many
+SELECT id, name, tournament_id
+FROM categories
+WHERE tournament_id = $1
+`
+
+func (q *Queries) ListCategoriesByTournament(ctx context.Context, tournamentID uuid.UUID) ([]Category, error) {
+	rows, err := q.db.QueryContext(ctx, listCategoriesByTournament, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Category
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(&i.ID, &i.Name, &i.TournamentID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -84,7 +119,7 @@ UPDATE categories
 SET
     name = COALESCE($2, name)
 WHERE id = $1
-RETURNING id, name
+RETURNING id, name, tournament_id
 `
 
 type UpdateCategoryParams struct {
@@ -95,6 +130,6 @@ type UpdateCategoryParams struct {
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
 	row := q.db.QueryRowContext(ctx, updateCategory, arg.ID, arg.Name)
 	var i Category
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Name, &i.TournamentID)
 	return i, err
 }
