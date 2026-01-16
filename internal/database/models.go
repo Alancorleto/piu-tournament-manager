@@ -29,6 +29,16 @@ type Player struct {
 	ModifiedAt        time.Time
 }
 
+type Round struct {
+	ID         uuid.UUID
+	Name       sql.NullString
+	Format     int32
+	Levels     sql.NullString
+	State      int32
+	CategoryID uuid.UUID
+	OrderIndex int32
+}
+
 type Tournament struct {
 	ID        uuid.UUID
 	Name      string
