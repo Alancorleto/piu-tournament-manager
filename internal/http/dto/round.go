@@ -5,27 +5,28 @@ import (
 )
 
 type CreateRoundRequest struct {
-	Name       *string   `json:"name"`
-	Format     int32     `json:"format"`
-	Levels     *string   `json:"levels"`
-	State      int32     `json:"state"`
-	CategoryID uuid.UUID `json:"category_id"`
-	OrderIndex int32     `json:"order_index"`
+	Name            *string `json:"name"`
+	Format          int32   `json:"format"`
+	Levels          *string `json:"levels"`
+	QualifiersCount int32   `json:"qualifiers_count"`
+	State           int32   `json:"state"`
 }
 
 type UpdateRoundRequest struct {
-	Name   *string `json:"name"`
-	Format *int32  `json:"format"`
-	Levels *string `json:"levels"`
-	State  *int32  `json:"state"`
+	Name            *string `json:"name"`
+	Format          *int32  `json:"format"`
+	Levels          *string `json:"levels"`
+	QualifiersCount *int32  `json:"qualifiers_count"`
+	State           *int32  `json:"state"`
 }
 
 type RoundResponse struct {
-	ID         uuid.UUID `json:"id"`
-	Name       *string   `json:"name,omitempty"`
-	Format     int32     `json:"format"`
-	Levels     *string   `json:"levels,omitempty"`
-	State      int32     `json:"state"`
-	CategoryID uuid.UUID `json:"category_id"`
-	OrderIndex int32     `json:"order_index"`
+	ID              uuid.UUID `json:"id"`
+	Name            *string   `json:"name,omitempty"`
+	Format          int32     `json:"format"`
+	Levels          *string   `json:"levels,omitempty"`
+	QualifiersCount int32     `json:"qualifiers_count"`
+	State           int32     `json:"state"`
+	CategoryID      uuid.UUID `json:"category_id"`
+	OrderIndex      int32     `json:"order_index"`
 }

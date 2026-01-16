@@ -30,13 +30,14 @@ type Player struct {
 }
 
 type Round struct {
-	ID         uuid.UUID
-	Name       sql.NullString
-	Format     int32
-	Levels     sql.NullString
-	State      int32
-	CategoryID uuid.UUID
-	OrderIndex int32
+	ID              uuid.UUID
+	Name            sql.NullString
+	Format          int32
+	Levels          sql.NullString
+	QualifiersCount int32
+	State           int32
+	CategoryID      uuid.UUID
+	OrderIndex      int32
 }
 
 type Tournament struct {

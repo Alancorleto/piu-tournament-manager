@@ -13,26 +13,37 @@ import (
 )
 
 const createRound = `-- name: CreateRound :one
-INSERT INTO rounds (id, name, format, levels, state, category_id, order_index)
-VALUES (
+INSERT INTO rounds (
+    id,
+    name,
+    format,
+    levels,
+    qualifiers_count,
+    state,
+    category_id,
+    order_index
+)
+SELECT
     gen_random_uuid(),
     $1,
     $2,
     $3,
     $4,
     $5,
-    $6
-)
-RETURNING id, name, format, levels, state, category_id, order_index
+    $6,
+    COALESCE(MAX(order_index), -1) + 1
+FROM rounds
+WHERE category_id = $6
+RETURNING id, name, format, levels, qualifiers_count, state, category_id, order_index
 `
 
 type CreateRoundParams struct {
-	Name       sql.NullString
-	Format     int32
-	Levels     sql.NullString
-	State      int32
-	CategoryID uuid.UUID
-	OrderIndex int32
+	Name            sql.NullString
+	Format          int32
+	Levels          sql.NullString
+	QualifiersCount int32
+	State           int32
+	CategoryID      uuid.UUID
 }
 
 func (q *Queries) CreateRound(ctx context.Context, arg CreateRoundParams) (Round, error) {
@@ -40,9 +51,9 @@ func (q *Queries) CreateRound(ctx context.Context, arg CreateRoundParams) (Round
 		arg.Name,
 		arg.Format,
 		arg.Levels,
+		arg.QualifiersCount,
 		arg.State,
 		arg.CategoryID,
-		arg.OrderIndex,
 	)
 	var i Round
 	err := row.Scan(
@@ -50,6 +61,7 @@ func (q *Queries) CreateRound(ctx context.Context, arg CreateRoundParams) (Round
 		&i.Name,
 		&i.Format,
 		&i.Levels,
+		&i.QualifiersCount,
 		&i.State,
 		&i.CategoryID,
 		&i.OrderIndex,
@@ -68,7 +80,7 @@ func (q *Queries) DeleteRound(ctx context.Context, id uuid.UUID) error {
 }
 
 const getRound = `-- name: GetRound :one
-SELECT id, name, format, levels, state, category_id, order_index
+SELECT id, name, format, levels, qualifiers_count, state, category_id, order_index
 FROM rounds
 WHERE id = $1
 `
@@ -81,6 +93,7 @@ func (q *Queries) GetRound(ctx context.Context, id uuid.UUID) (Round, error) {
 		&i.Name,
 		&i.Format,
 		&i.Levels,
+		&i.QualifiersCount,
 		&i.State,
 		&i.CategoryID,
 		&i.OrderIndex,
@@ -89,7 +102,7 @@ func (q *Queries) GetRound(ctx context.Context, id uuid.UUID) (Round, error) {
 }
 
 const listRounds = `-- name: ListRounds :many
-SELECT id, name, format, levels, state, category_id, order_index
+SELECT id, name, format, levels, qualifiers_count, state, category_id, order_index
 FROM rounds
 `
 
@@ -107,6 +120,7 @@ func (q *Queries) ListRounds(ctx context.Context) ([]Round, error) {
 			&i.Name,
 			&i.Format,
 			&i.Levels,
+			&i.QualifiersCount,
 			&i.State,
 			&i.CategoryID,
 			&i.OrderIndex,
@@ -125,7 +139,7 @@ func (q *Queries) ListRounds(ctx context.Context) ([]Round, error) {
 }
 
 const listRoundsByCategory = `-- name: ListRoundsByCategory :many
-SELECT id, name, format, levels, state, category_id, order_index
+SELECT id, name, format, levels, qualifiers_count, state, category_id, order_index
 FROM rounds
 WHERE category_id = $1
 ORDER BY order_index ASC
@@ -145,6 +159,7 @@ func (q *Queries) ListRoundsByCategory(ctx context.Context, categoryID uuid.UUID
 			&i.Name,
 			&i.Format,
 			&i.Levels,
+			&i.QualifiersCount,
 			&i.State,
 			&i.CategoryID,
 			&i.OrderIndex,
@@ -168,21 +183,23 @@ SET
     name = COALESCE($2, name),
     format = COALESCE($3, format),
     levels = COALESCE($4, levels),
-    state = COALESCE($5, state),
-    category_id = COALESCE($6, category_id),
-    order_index = COALESCE($7, order_index)
+    qualifiers_count = COALESCE($5, qualifiers_count),
+    state = COALESCE($6, state),
+    category_id = COALESCE($7, category_id),
+    order_index = COALESCE($8, order_index)
 WHERE id = $1
-RETURNING id, name, format, levels, state, category_id, order_index
+RETURNING id, name, format, levels, qualifiers_count, state, category_id, order_index
 `
 
 type UpdateRoundParams struct {
-	ID         uuid.UUID
-	Name       sql.NullString
-	Format     sql.NullInt32
-	Levels     sql.NullString
-	State      sql.NullInt32
-	CategoryId uuid.NullUUID
-	OrderIndex sql.NullInt32
+	ID              uuid.UUID
+	Name            sql.NullString
+	Format          sql.NullInt32
+	Levels          sql.NullString
+	QualifiersCount sql.NullInt32
+	State           sql.NullInt32
+	CategoryId      uuid.NullUUID
+	OrderIndex      sql.NullInt32
 }
 
 func (q *Queries) UpdateRound(ctx context.Context, arg UpdateRoundParams) (Round, error) {
@@ -191,6 +208,7 @@ func (q *Queries) UpdateRound(ctx context.Context, arg UpdateRoundParams) (Round
 		arg.Name,
 		arg.Format,
 		arg.Levels,
+		arg.QualifiersCount,
 		arg.State,
 		arg.CategoryId,
 		arg.OrderIndex,
@@ -201,6 +219,7 @@ func (q *Queries) UpdateRound(ctx context.Context, arg UpdateRoundParams) (Round
 		&i.Name,
 		&i.Format,
 		&i.Levels,
+		&i.QualifiersCount,
 		&i.State,
 		&i.CategoryID,
 		&i.OrderIndex,

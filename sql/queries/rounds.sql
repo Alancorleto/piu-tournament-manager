@@ -3,16 +3,27 @@ SELECT *
 FROM rounds;
 
 -- name: CreateRound :one
-INSERT INTO rounds (id, name, format, levels, state, category_id, order_index)
-VALUES (
+INSERT INTO rounds (
+    id,
+    name,
+    format,
+    levels,
+    qualifiers_count,
+    state,
+    category_id,
+    order_index
+)
+SELECT
     gen_random_uuid(),
     $1,
     $2,
     $3,
     $4,
     $5,
-    $6
-)
+    $6,
+    COALESCE(MAX(order_index), -1) + 1
+FROM rounds
+WHERE category_id = $6
 RETURNING *;
 
 -- name: GetRound :one
@@ -26,6 +37,7 @@ SET
     name = COALESCE(sqlc.narg('Name'), name),
     format = COALESCE(sqlc.narg('Format'), format),
     levels = COALESCE(sqlc.narg('Levels'), levels),
+    qualifiers_count = COALESCE(sqlc.narg('QualifiersCount'), qualifiers_count),
     state = COALESCE(sqlc.narg('State'), state),
     category_id = COALESCE(sqlc.narg('CategoryId'), category_id),
     order_index = COALESCE(sqlc.narg('OrderIndex'), order_index)
