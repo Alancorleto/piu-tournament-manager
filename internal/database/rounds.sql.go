@@ -104,49 +104,12 @@ func (q *Queries) GetRound(ctx context.Context, id uuid.UUID) (Round, error) {
 const listRounds = `-- name: ListRounds :many
 SELECT id, name, format, levels, qualifiers_count, state, category_id, order_index
 FROM rounds
-`
-
-func (q *Queries) ListRounds(ctx context.Context) ([]Round, error) {
-	rows, err := q.db.QueryContext(ctx, listRounds)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Round
-	for rows.Next() {
-		var i Round
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Format,
-			&i.Levels,
-			&i.QualifiersCount,
-			&i.State,
-			&i.CategoryID,
-			&i.OrderIndex,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listRoundsByCategory = `-- name: ListRoundsByCategory :many
-SELECT id, name, format, levels, qualifiers_count, state, category_id, order_index
-FROM rounds
 WHERE category_id = $1
 ORDER BY order_index ASC
 `
 
-func (q *Queries) ListRoundsByCategory(ctx context.Context, categoryID uuid.UUID) ([]Round, error) {
-	rows, err := q.db.QueryContext(ctx, listRoundsByCategory, categoryID)
+func (q *Queries) ListRounds(ctx context.Context, categoryID uuid.UUID) ([]Round, error) {
+	rows, err := q.db.QueryContext(ctx, listRounds, categoryID)
 	if err != nil {
 		return nil, err
 	}

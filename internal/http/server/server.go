@@ -44,10 +44,10 @@ func New(addr string, db *database.Queries) *Server {
 	mux.HandleFunc("DELETE /api/categories/{id}", server.DeleteCategory)
 
 	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds", server.CreateRound)
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{id}", server.GetRound)
+	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.GetRound)
 	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds", server.ListRounds)
-	mux.HandleFunc("PATCH /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{id}", server.UpdateRound)
-	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{id}", server.DeleteRound)
+	mux.HandleFunc("PATCH /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.UpdateRound)
+	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.DeleteRound)
 
 	return &server
 }

@@ -6,43 +6,71 @@ import (
 	"github.com/alancorleto/piu-tournament-manager/internal/http/codec/json"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/mapper"
-	"github.com/google/uuid"
 )
 
 func (s *Server) CreateRound(w http.ResponseWriter, r *http.Request) {
-	categoryIDString := r.PathValue("category_id")
-	if categoryIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing category ID in URL")
-		return
-	}
+	ctx := r.Context()
 
-	categoryID := mapper.ParseUUID(categoryIDString)
-	if categoryID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid category ID format")
-		return
-	}
-
-	requestParams, err := json.ParseRequestParameters[dto.CreateRoundRequest](r)
+	tournamentID, err := mustPathUUID(r, "tournament_id")
 	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Error decoding parameters: "+err.Error())
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	req, err := json.ParseRequestParameters[dto.CreateRoundRequest](r)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
 	round, err := s.db.CreateRound(
-		r.Context(),
-		mapper.CreateRoundParams(requestParams, categoryID),
+		ctx,
+		mapper.CreateRoundParams(req, categoryID),
 	)
 	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Error creating round: "+err.Error())
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to create round")
 		return
 	}
 
 	response := mapper.RoundResponse(round)
+
 	json.RespondWithJSON(w, http.StatusCreated, response)
 }
 
 func (s *Server) ListRounds(w http.ResponseWriter, r *http.Request) {
-	rounds, err := s.db.ListRounds(r.Context())
+	ctx := r.Context()
+
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
+		return
+	}
+
+	rounds, err := s.db.ListRounds(ctx, categoryID)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, "Error listing rounds: "+err.Error())
 		return
@@ -57,15 +85,23 @@ func (s *Server) ListRounds(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
-	roundIDString := r.PathValue("id")
-	if roundIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing round ID in URL")
+	ctx := r.Context()
+
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	roundID := mapper.ParseUUID(roundIDString)
-	if roundID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid round ID format")
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	roundID, err := mustPathUUID(r, "id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -75,8 +111,14 @@ func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
+		return
+	}
+
 	round, err := s.db.UpdateRound(
-		r.Context(),
+		ctx,
 		mapper.UpdateRoundParams(roundID, requestParams),
 	)
 	if err != nil {
@@ -89,20 +131,34 @@ func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DeleteRound(w http.ResponseWriter, r *http.Request) {
-	roundIDString := r.PathValue("round_id")
-	if roundIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing round ID in URL")
+	ctx := r.Context()
+
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	roundID := mapper.ParseUUID(roundIDString)
-	if roundID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid round ID format")
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := s.db.DeleteRound(
-		r.Context(),
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
+		return
+	}
+
+	err = s.db.DeleteRound(
+		ctx,
 		roundID,
 	)
 	if err != nil {
@@ -114,20 +170,34 @@ func (s *Server) DeleteRound(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRound(w http.ResponseWriter, r *http.Request) {
-	roundIDString := r.PathValue("round_id")
-	if roundIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing round ID in URL")
+	ctx := r.Context()
+
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	roundID := mapper.ParseUUID(roundIDString)
-	if roundID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid round ID format")
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
 	round, err := s.db.GetRound(
-		r.Context(),
+		ctx,
 		roundID,
 	)
 	if err != nil {
@@ -136,35 +206,5 @@ func (s *Server) GetRound(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := mapper.RoundResponse(round)
-	json.RespondWithJSON(w, http.StatusOK, response)
-}
-
-func (s *Server) ListRoundsByCategory(w http.ResponseWriter, r *http.Request) {
-	categoryIDString := r.PathValue("category_id")
-	if categoryIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing category ID in URL")
-		return
-	}
-
-	categoryID := mapper.ParseUUID(categoryIDString)
-	if categoryID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid category ID format")
-		return
-	}
-
-	rounds, err := s.db.ListRoundsByCategory(
-		r.Context(),
-		categoryID,
-	)
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Error listing rounds: "+err.Error())
-		return
-	}
-
-	response := make([]dto.RoundResponse, len(rounds))
-	for i, round := range rounds {
-		response[i] = mapper.RoundResponse(round)
-	}
-
 	json.RespondWithJSON(w, http.StatusOK, response)
 }

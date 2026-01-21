@@ -1,6 +1,8 @@
 -- name: ListRounds :many
 SELECT *
-FROM rounds;
+FROM rounds
+WHERE category_id = $1
+ORDER BY order_index ASC;
 
 -- name: CreateRound :one
 INSERT INTO rounds (
@@ -47,9 +49,3 @@ RETURNING *;
 -- name: DeleteRound :exec
 DELETE FROM rounds
 WHERE id = $1;
-
--- name: ListRoundsByCategory :many
-SELECT *
-FROM rounds
-WHERE category_id = $1
-ORDER BY order_index ASC;

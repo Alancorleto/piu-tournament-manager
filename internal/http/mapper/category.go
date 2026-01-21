@@ -28,3 +28,10 @@ func UpdateCategoryParams(id uuid.UUID, req dto.UpdateCategoryRequest) database.
 		Name: toNullString(req.Name),
 	}
 }
+
+func ValidateCategoryBelongsToTournamentParams(categoryID, tournamentID uuid.UUID) database.ValidateCategoryBelongsToTournamentParams {
+	return database.ValidateCategoryBelongsToTournamentParams{
+		ID:           categoryID,
+		TournamentID: tournamentID,
+	}
+}

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -160,4 +161,19 @@ func (s *Server) ListCategoriesByTournament(w http.ResponseWriter, r *http.Reque
 	}
 
 	json.RespondWithJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) validateCategoryInTournament(
+	ctx context.Context,
+	categoryID,
+	tournamentID uuid.UUID,
+) error {
+	_, err := s.db.ValidateCategoryBelongsToTournament(
+		ctx,
+		mapper.ValidateCategoryBelongsToTournamentParams(
+			categoryID,
+			tournamentID,
+		),
+	)
+	return err
 }

@@ -133,3 +133,21 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 	err := row.Scan(&i.ID, &i.Name, &i.TournamentID)
 	return i, err
 }
+
+const validateCategoryBelongsToTournament = `-- name: ValidateCategoryBelongsToTournament :one
+SELECT id
+FROM categories
+WHERE id = $1 AND tournament_id = $2
+`
+
+type ValidateCategoryBelongsToTournamentParams struct {
+	ID           uuid.UUID
+	TournamentID uuid.UUID
+}
+
+func (q *Queries) ValidateCategoryBelongsToTournament(ctx context.Context, arg ValidateCategoryBelongsToTournamentParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, validateCategoryBelongsToTournament, arg.ID, arg.TournamentID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}

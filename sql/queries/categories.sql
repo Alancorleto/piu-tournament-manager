@@ -31,3 +31,8 @@ WHERE id = $1;
 SELECT *
 FROM categories
 WHERE tournament_id = $1;
+
+-- name: ValidateCategoryBelongsToTournament :one
+SELECT id
+FROM categories
+WHERE id = $1 AND tournament_id = $2;
