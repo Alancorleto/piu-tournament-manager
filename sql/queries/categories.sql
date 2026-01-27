@@ -9,7 +9,8 @@ RETURNING *;
 
 -- name: ListCategories :many
 SELECT *
-FROM categories;
+FROM categories
+WHERE tournament_id = $1;
 
 -- name: UpdateCategory :one
 UPDATE categories
@@ -26,11 +27,6 @@ WHERE id = $1;
 SELECT *
 FROM categories
 WHERE id = $1;
-
--- name: ListCategoriesByTournament :many
-SELECT *
-FROM categories
-WHERE tournament_id = $1;
 
 -- name: ValidateCategoryBelongsToTournament :one
 SELECT id

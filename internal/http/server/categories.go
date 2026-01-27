@@ -12,15 +12,9 @@ import (
 )
 
 func (s *Server) CreateCategory(w http.ResponseWriter, r *http.Request) {
-	tournamentIDString := r.PathValue("tournament_id")
-	if tournamentIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing tournament ID in URL")
-		return
-	}
-
-	tournamentID := mapper.ParseUUID(tournamentIDString)
-	if tournamentID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid tournament ID format")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -44,7 +38,13 @@ func (s *Server) CreateCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ListCategories(w http.ResponseWriter, r *http.Request) {
-	categories, err := s.db.ListCategories(r.Context())
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	categories, err := s.db.ListCategories(r.Context(), tournamentID)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error listing categories: %s", err))
 		return
@@ -59,21 +59,27 @@ func (s *Server) ListCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateCategory(w http.ResponseWriter, r *http.Request) {
-	categoryIDString := r.PathValue("id")
-	if categoryIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing category ID in URL")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	categoryID := mapper.ParseUUID(categoryIDString)
-	if categoryID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid category ID format")
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	requestParams, err := json.ParseRequestParameters[dto.UpdateCategoryRequest](r)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error decoding parameters: %s", err))
+		return
+	}
+
+	err = s.validateCategoryInTournament(r.Context(), categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
@@ -92,19 +98,25 @@ func (s *Server) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DeleteCategory(w http.ResponseWriter, r *http.Request) {
-	categoryIDString := r.PathValue("id")
-	if categoryIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing category ID in URL")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	categoryID := mapper.ParseUUID(categoryIDString)
-	if categoryID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid category ID format")
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := s.db.DeleteCategory(r.Context(), categoryID)
+	err = s.validateCategoryInTournament(r.Context(), categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
+		return
+	}
+
+	err = s.db.DeleteCategory(r.Context(), categoryID)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error deleting category: %s", err))
 		return
@@ -114,15 +126,21 @@ func (s *Server) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetCategory(w http.ResponseWriter, r *http.Request) {
-	categoryIDString := r.PathValue("id")
-	if categoryIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing category ID in URL")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	categoryID := mapper.ParseUUID(categoryIDString)
-	if categoryID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid category ID format")
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.validateCategoryInTournament(r.Context(), categoryID, tournamentID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
@@ -133,33 +151,6 @@ func (s *Server) GetCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := mapper.CategoryResponse(category)
-	json.RespondWithJSON(w, http.StatusOK, response)
-}
-
-func (s *Server) ListCategoriesByTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentIDString := r.PathValue("tournament_id")
-	if tournamentIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing tournament ID in URL")
-		return
-	}
-
-	tournamentID := mapper.ParseUUID(tournamentIDString)
-	if tournamentID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid tournament ID format")
-		return
-	}
-
-	categories, err := s.db.ListCategoriesByTournament(r.Context(), tournamentID)
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error listing categories from tournament: %s", err))
-		return
-	}
-
-	response := make([]dto.CategoryResponse, len(categories))
-	for i, category := range categories {
-		response[i] = mapper.CategoryResponse(category)
-	}
-
 	json.RespondWithJSON(w, http.StatusOK, response)
 }
 
