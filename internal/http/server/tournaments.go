@@ -7,7 +7,6 @@ import (
 	"github.com/alancorleto/piu-tournament-manager/internal/http/codec/json"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/mapper"
-	"github.com/google/uuid"
 )
 
 func (s *Server) CreateTournament(w http.ResponseWriter, r *http.Request) {
@@ -47,15 +46,9 @@ func (s *Server) ListTournaments(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentIDString := r.PathValue("id")
-	if tournamentIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing tournament ID in URL")
-		return
-	}
-
-	tournamentID := mapper.ParseUUID(tournamentIDString)
-	if tournamentID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid tournament ID format")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -80,19 +73,13 @@ func (s *Server) UpdateTournament(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DeleteTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentIDString := r.PathValue("id")
-	if tournamentIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing tournament ID in URL")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	tournamentID := mapper.ParseUUID(tournamentIDString)
-	if tournamentID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid tournament ID format")
-		return
-	}
-
-	err := s.db.DeleteTournament(r.Context(), tournamentID)
+	err = s.db.DeleteTournament(r.Context(), tournamentID)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error deleting tournament: %s", err))
 		return
@@ -102,15 +89,9 @@ func (s *Server) DeleteTournament(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentIDString := r.PathValue("id")
-	if tournamentIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing tournament ID in URL")
-		return
-	}
-
-	tournamentID := mapper.ParseUUID(tournamentIDString)
-	if tournamentID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid tournament ID format")
+	tournamentID, err := mustPathUUID(r, "tournament_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

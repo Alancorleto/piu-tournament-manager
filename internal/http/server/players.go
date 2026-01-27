@@ -7,7 +7,6 @@ import (
 	"github.com/alancorleto/piu-tournament-manager/internal/http/codec/json"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
 	"github.com/alancorleto/piu-tournament-manager/internal/http/mapper"
-	"github.com/google/uuid"
 )
 
 func (s *Server) CreatePlayer(w http.ResponseWriter, r *http.Request) {
@@ -47,15 +46,9 @@ func (s *Server) ListPlayers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
-	playerIDString := r.PathValue("id")
-	if playerIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing player ID in URL")
-		return
-	}
-
-	playerID := mapper.ParseUUID(playerIDString)
-	if playerID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid player ID format")
+	playerID, err := mustPathUUID(r, "player_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -80,19 +73,13 @@ func (s *Server) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
-	playerIDString := r.PathValue("id")
-	if playerIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing player ID in URL")
+	playerID, err := mustPathUUID(r, "player_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	playerID := mapper.ParseUUID(playerIDString)
-	if playerID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid player ID format")
-		return
-	}
-
-	err := s.db.DeletePlayer(r.Context(), playerID)
+	err = s.db.DeletePlayer(r.Context(), playerID)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error deleting player: %s", err))
 		return
@@ -102,15 +89,9 @@ func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetPlayer(w http.ResponseWriter, r *http.Request) {
-	playerIDString := r.PathValue("id")
-	if playerIDString == "" {
-		json.RespondWithError(w, http.StatusBadRequest, "Missing player ID in URL")
-		return
-	}
-
-	playerID := mapper.ParseUUID(playerIDString)
-	if playerID == uuid.Nil {
-		json.RespondWithError(w, http.StatusBadRequest, "Invalid player ID format")
+	playerID, err := mustPathUUID(r, "player_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
