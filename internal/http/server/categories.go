@@ -154,6 +154,102 @@ func (s *Server) GetCategory(w http.ResponseWriter, r *http.Request) {
 	json.RespondWithJSON(w, http.StatusOK, response)
 }
 
+func (s *Server) ListPlayersInCategory(w http.ResponseWriter, r *http.Request) {
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	players, err := s.db.ListPlayersInCategory(r.Context(), categoryID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error listing players in category: %s", err))
+		return
+	}
+
+	response := make([]dto.PlayerResponse, len(players))
+	for i, player := range players {
+		response[i] = mapper.PlayerResponse(player)
+	}
+
+	json.RespondWithJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) AddPlayerToCategory(w http.ResponseWriter, r *http.Request) {
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	playerID, err := mustPathUUID(r, "player_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.AddPlayerToCategory(
+		r.Context(),
+		mapper.AddPlayerToCategoryParams(categoryID, playerID),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error adding player to category: %s", err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) AddPlayersToCategoryBulk(w http.ResponseWriter, r *http.Request) {
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	requestParams, err := json.ParseRequestParameters[dto.AddPlayersToCategoryBulkRequest](r)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error decoding parameters: %s", err))
+		return
+	}
+
+	err = s.db.AddPlayersToCategoryBulk(
+		r.Context(),
+		mapper.AddPlayersToCategoryBulkParams(categoryID, requestParams.PlayerIDs),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error adding players to category: %s", err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) RemovePlayerFromCategory(w http.ResponseWriter, r *http.Request) {
+	categoryID, err := mustPathUUID(r, "category_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	playerID, err := mustPathUUID(r, "player_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.RemovePlayerFromCategory(
+		r.Context(),
+		mapper.RemovePlayerFromCategoryParams(categoryID, playerID),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error removing player from category: %s", err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *Server) validateCategoryInTournament(
 	ctx context.Context,
 	categoryID,

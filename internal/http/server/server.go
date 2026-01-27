@@ -43,6 +43,11 @@ func New(addr string, db *database.Queries) *Server {
 	mux.HandleFunc("PATCH /api/tournaments/{tournament_id}/categories/{category_id}", server.UpdateCategory)
 	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}", server.DeleteCategory)
 
+	mux.HandleFunc("PUT /api/tournaments/{tournament_id}/categories/{category_id}/players/{player_id}", server.AddPlayerToCategory)
+	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/players/bulk", server.AddPlayersToCategoryBulk)
+	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/players/{player_id}", server.RemovePlayerFromCategory)
+	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/players", server.ListPlayersInCategory)
+
 	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds", server.CreateRound)
 	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.GetRound)
 	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds", server.ListRounds)

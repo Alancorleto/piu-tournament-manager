@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type CategoriesPlayer struct {
+	CategoryID uuid.UUID
+	PlayerID   uuid.UUID
+}
+
 type Category struct {
 	ID           uuid.UUID
 	Name         string

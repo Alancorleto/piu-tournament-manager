@@ -35,3 +35,24 @@ func ValidateCategoryBelongsToTournamentParams(categoryID, tournamentID uuid.UUI
 		TournamentID: tournamentID,
 	}
 }
+
+func AddPlayerToCategoryParams(categoryID, playerID uuid.UUID) database.AddPlayerToCategoryParams {
+	return database.AddPlayerToCategoryParams{
+		CategoryID: categoryID,
+		PlayerID:   playerID,
+	}
+}
+
+func AddPlayersToCategoryBulkParams(categoryID uuid.UUID, playerIDs []uuid.UUID) database.AddPlayersToCategoryBulkParams {
+	return database.AddPlayersToCategoryBulkParams{
+		CategoryID: categoryID,
+		PlayerIds:  playerIDs,
+	}
+}
+
+func RemovePlayerFromCategoryParams(categoryID, playerID uuid.UUID) database.RemovePlayerFromCategoryParams {
+	return database.RemovePlayerFromCategoryParams{
+		CategoryID: categoryID,
+		PlayerID:   playerID,
+	}
+}

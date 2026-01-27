@@ -17,3 +17,7 @@ type CategoryResponse struct {
 	Name         string    `json:"name"`
 	TournamentID uuid.UUID `json:"tournament_id"`
 }
+
+type AddPlayersToCategoryBulkRequest struct {
+	PlayerIDs []uuid.UUID `json:"player_ids"`
+}
