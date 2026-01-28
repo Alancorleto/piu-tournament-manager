@@ -25,7 +25,7 @@ func main() {
 	}
 
 	dbQueries := database.New(db)
-	srv := server.New(port, dbQueries)
+	srv := server.New(port, db, dbQueries)
 
 	go func() {
 		log.Printf("Listening on %s", srv.Addr)

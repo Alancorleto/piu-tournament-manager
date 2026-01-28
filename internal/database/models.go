@@ -45,6 +45,12 @@ type Round struct {
 	OrderIndex      int32
 }
 
+type RoundsPlayer struct {
+	RoundID    uuid.UUID
+	PlayerID   uuid.UUID
+	OrderIndex int32
+}
+
 type Tournament struct {
 	ID        uuid.UUID
 	Name      string

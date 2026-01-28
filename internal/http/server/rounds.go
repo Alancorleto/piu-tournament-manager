@@ -99,7 +99,7 @@ func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roundID, err := mustPathUUID(r, "id")
+	roundID, err := mustPathUUID(r, "round_id")
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -208,3 +208,53 @@ func (s *Server) GetRound(w http.ResponseWriter, r *http.Request) {
 	response := mapper.RoundResponse(round)
 	json.RespondWithJSON(w, http.StatusOK, response)
 }
+
+// func (s *Server) AddPlayersToRoundBulk(w http.ResponseWriter, r *http.Request) {
+// 	ctx := r.Context()
+
+// 	roundID, err := mustPathUUID(r, "round_id")
+// 	if err != nil {
+// 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+
+// 	req, err := json.ParseRequestParameters[dto.AddPlayersToRoundBulkRequest](r)
+// 	if err != nil {
+// 		json.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+// 		return
+// 	}
+
+// 	// Initiate transaction to avoid race conditions
+// 	tx, err := s.dbConn.BeginTx(ctx, nil)
+// 	if err != nil {
+// 		json.RespondWithError(w, http.StatusInternalServerError, "failed to begin transaction")
+// 		return
+// 	}
+// 	defer tx.Rollback()
+
+// 	// Use WithTx to get a Queries instance that uses the transaction
+// 	txQueries := s.db.WithTx(tx)
+
+// 	maxIndex, err := txQueries.GetMaxOrderIndexInRound(ctx, roundID)
+// 	if err != nil {
+// 		json.RespondWithError(w, http.StatusInternalServerError, "failed to get max order index for round: "+err.Error())
+// 		return
+// 	}
+
+// 	err = txQueries.AddPlayersToRoundBulk(
+// 		ctx,
+// 		mapper.AddPlayersToRoundBulkParams(roundID, req),
+// 	)
+// 	if err != nil {
+// 		json.RespondWithError(w, http.StatusInternalServerError, "failed to add players to round: "+err.Error())
+// 		return
+// 	}
+
+// 	// Commit transaction
+// 	if err = tx.Commit(); err != nil {
+// 		json.RespondWithError(w, http.StatusInternalServerError, "failed to commit transaction")
+// 		return
+// 	}
+
+// 	w.WriteHeader(http.StatusNoContent)
+// }

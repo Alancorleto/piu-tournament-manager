@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/alancorleto/piu-tournament-manager/internal/database"
@@ -8,11 +9,12 @@ import (
 
 type Server struct {
 	http.Server
-	db *database.Queries
+	db     *database.Queries
+	dbConn *sql.DB
 }
 
 // New returns a *Server configured with the package's handlers.
-func New(addr string, db *database.Queries) *Server {
+func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux := http.NewServeMux()
 
 	server := Server{
@@ -20,7 +22,8 @@ func New(addr string, db *database.Queries) *Server {
 			Addr:    addr,
 			Handler: mux,
 		},
-		db: db,
+		db:     db,
+		dbConn: dbConn,
 	}
 
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("frontend"))))
