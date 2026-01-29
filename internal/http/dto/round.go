@@ -34,3 +34,7 @@ type RoundResponse struct {
 type AddPlayersToRoundBulkRequest struct {
 	PlayerIDs []uuid.UUID `json:"player_ids"`
 }
+
+type UpdateRoundPlayersOrderBulkRequest struct {
+	PlayerIDs []uuid.UUID `json:"player_ids"`
+}

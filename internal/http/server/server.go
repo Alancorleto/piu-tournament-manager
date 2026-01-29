@@ -57,5 +57,10 @@ func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux.HandleFunc("PATCH /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.UpdateRound)
 	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.DeleteRound)
 
+	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players", server.ListPlayersInRound)
+	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players/bulk", server.AddPlayersToRoundBulk)
+	mux.HandleFunc("PUT /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players/bulk", server.UpdateRoundPlayersOrderBulk)
+	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players/{player_id}", server.RemovePlayerFromRound)
+
 	return &server
 }

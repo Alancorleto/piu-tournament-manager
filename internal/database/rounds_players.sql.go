@@ -34,39 +34,45 @@ func (q *Queries) AddPlayerToRound(ctx context.Context, arg AddPlayerToRoundPara
 }
 
 const addPlayersToRoundBulk = `-- name: AddPlayersToRoundBulk :exec
+WITH last_order AS (
+    -- Get the current maximum order_index for the round
+    SELECT COALESCE(MAX(order_index), 0) as value
+    FROM rounds_players
+    WHERE round_id = $1
+)
 INSERT INTO rounds_players (round_id, player_id, order_index)
-SELECT
-  $1::uuid        AS round_id,
-  unnest($2::uuid[]) AS player_id,
-  generate_series(
-    $3::int,
-    ($3 + array_length($2, 1) - 1)::int
-  ) AS order_index
+  SELECT 
+    $1, 
+    new_player.id, 
+    last_order.value + new_player.array_index
+  FROM unnest($2::uuid[]) WITH ORDINALITY AS new_player(id, array_index)
+  CROSS JOIN last_order
 `
 
 type AddPlayersToRoundBulkParams struct {
 	RoundID   uuid.UUID
 	PlayerIds []uuid.UUID
-	OrderBase int32
 }
 
 func (q *Queries) AddPlayersToRoundBulk(ctx context.Context, arg AddPlayersToRoundBulkParams) error {
-	_, err := q.db.ExecContext(ctx, addPlayersToRoundBulk, arg.RoundID, pq.Array(arg.PlayerIds), arg.OrderBase)
+	_, err := q.db.ExecContext(ctx, addPlayersToRoundBulk, arg.RoundID, pq.Array(arg.PlayerIds))
 	return err
 }
 
-const getMaxOrderIndexInRound = `-- name: GetMaxOrderIndexInRound :one
-SELECT COALESCE(MAX(order_index), 0)
-FROM rounds_players
-WHERE round_id = $1
-FOR UPDATE
+const fixMissingIndexFromRoundPlayerOrder = `-- name: FixMissingIndexFromRoundPlayerOrder :exec
+UPDATE rounds_players
+SET order_index = order_index - 1
+WHERE round_id = $1 AND order_index > $2
 `
 
-func (q *Queries) GetMaxOrderIndexInRound(ctx context.Context, roundID uuid.UUID) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getMaxOrderIndexInRound, roundID)
-	var coalesce interface{}
-	err := row.Scan(&coalesce)
-	return coalesce, err
+type FixMissingIndexFromRoundPlayerOrderParams struct {
+	RoundID    uuid.UUID
+	OrderIndex int32
+}
+
+func (q *Queries) FixMissingIndexFromRoundPlayerOrder(ctx context.Context, arg FixMissingIndexFromRoundPlayerOrderParams) error {
+	_, err := q.db.ExecContext(ctx, fixMissingIndexFromRoundPlayerOrder, arg.RoundID, arg.OrderIndex)
+	return err
 }
 
 const listPlayersInRound = `-- name: ListPlayersInRound :many
@@ -74,6 +80,7 @@ SELECT p.id, p.nickname, p.name, p.team_name, p.country_code, p.city, p.profile_
 FROM players p
 JOIN rounds_players cp ON p.id = cp.player_id
 WHERE cp.round_id = $1
+ORDER BY cp.order_index ASC
 `
 
 func (q *Queries) ListPlayersInRound(ctx context.Context, roundID uuid.UUID) ([]Player, error) {
@@ -109,9 +116,10 @@ func (q *Queries) ListPlayersInRound(ctx context.Context, roundID uuid.UUID) ([]
 	return items, nil
 }
 
-const removePlayerFromRound = `-- name: RemovePlayerFromRound :exec
+const removePlayerFromRound = `-- name: RemovePlayerFromRound :one
 DELETE FROM rounds_players
 WHERE round_id = $1 AND player_id = $2
+RETURNING order_index
 `
 
 type RemovePlayerFromRoundParams struct {
@@ -119,7 +127,33 @@ type RemovePlayerFromRoundParams struct {
 	PlayerID uuid.UUID
 }
 
-func (q *Queries) RemovePlayerFromRound(ctx context.Context, arg RemovePlayerFromRoundParams) error {
-	_, err := q.db.ExecContext(ctx, removePlayerFromRound, arg.RoundID, arg.PlayerID)
+func (q *Queries) RemovePlayerFromRound(ctx context.Context, arg RemovePlayerFromRoundParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, removePlayerFromRound, arg.RoundID, arg.PlayerID)
+	var order_index int32
+	err := row.Scan(&order_index)
+	return order_index, err
+}
+
+const updateRoundPlayersOrderBulk = `-- name: UpdateRoundPlayersOrderBulk :exec
+WITH incoming_order AS (
+    SELECT 
+        player_id, 
+        new_position
+    FROM unnest($2::uuid[]) WITH ORDINALITY AS u(player_id, new_position)
+)
+UPDATE rounds_players
+SET order_index = incoming_order.new_position
+FROM incoming_order
+WHERE rounds_players.round_id = $1 
+  AND rounds_players.player_id = incoming_order.player_id
+`
+
+type UpdateRoundPlayersOrderBulkParams struct {
+	RoundID   uuid.UUID
+	PlayerIds []uuid.UUID
+}
+
+func (q *Queries) UpdateRoundPlayersOrderBulk(ctx context.Context, arg UpdateRoundPlayersOrderBulkParams) error {
+	_, err := q.db.ExecContext(ctx, updateRoundPlayersOrderBulk, arg.RoundID, pq.Array(arg.PlayerIds))
 	return err
 }

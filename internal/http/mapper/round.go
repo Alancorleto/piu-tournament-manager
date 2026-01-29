@@ -41,3 +41,31 @@ func UpdateRoundParams(id uuid.UUID, req dto.UpdateRoundRequest) database.Update
 		State:           toNullInt32(req.State),
 	}
 }
+
+func AddPlayersToRoundBulkParams(roundID uuid.UUID, req dto.AddPlayersToRoundBulkRequest) database.AddPlayersToRoundBulkParams {
+	return database.AddPlayersToRoundBulkParams{
+		RoundID:   roundID,
+		PlayerIds: req.PlayerIDs,
+	}
+}
+
+func RemovePlayerFromRoundParams(roundID, playerID uuid.UUID) database.RemovePlayerFromRoundParams {
+	return database.RemovePlayerFromRoundParams{
+		RoundID:  roundID,
+		PlayerID: playerID,
+	}
+}
+
+func FixMissingIndexFromRoundPlayerOrderParams(roundID uuid.UUID, removedOrderIndex int32) database.FixMissingIndexFromRoundPlayerOrderParams {
+	return database.FixMissingIndexFromRoundPlayerOrderParams{
+		RoundID:    roundID,
+		OrderIndex: removedOrderIndex,
+	}
+}
+
+func UpdateRoundPlayersOrderBulkParams(roundID uuid.UUID, req dto.UpdateRoundPlayersOrderBulkRequest) database.UpdateRoundPlayersOrderBulkParams {
+	return database.UpdateRoundPlayersOrderBulkParams{
+		RoundID:   roundID,
+		PlayerIds: req.PlayerIDs,
+	}
+}
