@@ -51,6 +51,12 @@ type RoundsPlayer struct {
 	OrderIndex int32
 }
 
+type Song struct {
+	ID       uuid.UUID
+	Name     string
+	TitleUrl sql.NullString
+}
+
 type Tournament struct {
 	ID        uuid.UUID
 	Name      string
