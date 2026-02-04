@@ -49,3 +49,10 @@ func ParseUUID(s string) uuid.UUID {
 	}
 	return parsed
 }
+
+func toNullUUID(id *uuid.UUID) uuid.NullUUID {
+	if id == nil {
+		return uuid.NullUUID{Valid: false}
+	}
+	return uuid.NullUUID{UUID: *id, Valid: true}
+}

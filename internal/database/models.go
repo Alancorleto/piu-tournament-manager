@@ -22,6 +22,14 @@ type Category struct {
 	TournamentID uuid.UUID
 }
 
+type Chart struct {
+	ID          uuid.UUID
+	SongID      uuid.UUID
+	Mode        int32
+	Level       int32
+	PlayerCount int32
+}
+
 type Player struct {
 	ID                uuid.UUID
 	Nickname          string
