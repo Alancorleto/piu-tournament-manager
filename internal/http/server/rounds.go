@@ -338,3 +338,80 @@ func (s *Server) UpdateRoundPlayersOrderBulk(w http.ResponseWriter, r *http.Requ
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (s *Server) AddChartToRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	chartID, err := mustPathUUID(r, "chart_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.AddChartToRound(
+		ctx,
+		mapper.AddChartToRoundParams(roundID, chartID),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to add chart to round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) RemoveChartFromRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	chartID, err := mustPathUUID(r, "chart_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.RemoveChartFromRound(
+		ctx,
+		mapper.RemoveChartFromRoundParams(roundID, chartID),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to remove chart from round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) ListChartsInRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	charts, err := s.db.ListChartsInRound(ctx, roundID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to list charts in round: "+err.Error())
+		return
+	}
+
+	response := make([]dto.ChartResponse, len(charts))
+	for i, chart := range charts {
+		response[i] = mapper.ChartResponse(chart)
+	}
+
+	json.RespondWithJSON(w, http.StatusOK, response)
+}

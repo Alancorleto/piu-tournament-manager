@@ -72,5 +72,9 @@ func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux.HandleFunc("PATCH /api/charts/{chart_id}", server.UpdateChart)
 	mux.HandleFunc("DELETE /api/charts/{chart_id}", server.DeleteChart)
 
+	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts", server.ListChartsInRound)
+	mux.HandleFunc("PUT /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts/{chart_id}", server.AddChartToRound)
+	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts/{chart_id}", server.RemoveChartFromRound)
+
 	return &server
 }

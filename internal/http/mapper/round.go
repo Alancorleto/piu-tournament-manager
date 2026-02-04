@@ -69,3 +69,17 @@ func UpdateRoundPlayersOrderBulkParams(roundID uuid.UUID, req dto.UpdateRoundPla
 		PlayerIds: req.PlayerIDs,
 	}
 }
+
+func AddChartToRoundParams(roundID, chartID uuid.UUID) database.AddChartToRoundParams {
+	return database.AddChartToRoundParams{
+		RoundID: roundID,
+		ChartID: chartID,
+	}
+}
+
+func RemoveChartFromRoundParams(roundID, chartID uuid.UUID) database.RemoveChartFromRoundParams {
+	return database.RemoveChartFromRoundParams{
+		RoundID: roundID,
+		ChartID: chartID,
+	}
+}

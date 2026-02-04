@@ -53,6 +53,11 @@ type Round struct {
 	OrderIndex      int32
 }
 
+type RoundsChart struct {
+	RoundID uuid.UUID
+	ChartID uuid.UUID
+}
+
 type RoundsPlayer struct {
 	RoundID    uuid.UUID
 	PlayerID   uuid.UUID
