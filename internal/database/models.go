@@ -54,8 +54,9 @@ type Round struct {
 }
 
 type RoundsChart struct {
-	RoundID uuid.UUID
-	ChartID uuid.UUID
+	RoundID    uuid.UUID
+	ChartID    uuid.UUID
+	OrderIndex int32
 }
 
 type RoundsPlayer struct {

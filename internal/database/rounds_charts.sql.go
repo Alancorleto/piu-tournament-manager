@@ -12,8 +12,13 @@ import (
 )
 
 const addChartToRound = `-- name: AddChartToRound :exec
-INSERT INTO rounds_charts (round_id, chart_id)
-VALUES ($1, $2)
+INSERT INTO rounds_charts (round_id, chart_id, order_index)
+SELECT
+    $1,
+    $2,
+    COALESCE(MAX(order_index), -1) + 1
+FROM rounds_charts
+WHERE round_id = $1
 ON CONFLICT (round_id, chart_id) DO NOTHING
 `
 
@@ -27,12 +32,41 @@ func (q *Queries) AddChartToRound(ctx context.Context, arg AddChartToRoundParams
 	return err
 }
 
+const fixMissingIndexFromRoundChartOrder = `-- name: FixMissingIndexFromRoundChartOrder :exec
+UPDATE rounds_charts
+SET order_index = order_index - 1
+WHERE round_id = $1 AND order_index > $2
+`
+
+type FixMissingIndexFromRoundChartOrderParams struct {
+	RoundID    uuid.UUID
+	OrderIndex int32
+}
+
+func (q *Queries) FixMissingIndexFromRoundChartOrder(ctx context.Context, arg FixMissingIndexFromRoundChartOrderParams) error {
+	_, err := q.db.ExecContext(ctx, fixMissingIndexFromRoundChartOrder, arg.RoundID, arg.OrderIndex)
+	return err
+}
+
+const getRoundChartCount = `-- name: GetRoundChartCount :one
+SELECT COUNT(*) AS count
+FROM rounds_charts
+WHERE round_id = $1
+`
+
+func (q *Queries) GetRoundChartCount(ctx context.Context, roundID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getRoundChartCount, roundID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const listChartsInRound = `-- name: ListChartsInRound :many
 SELECT c.id, c.song_id, c.mode, c.level, c.player_count
 FROM charts c
 JOIN rounds_charts rc ON c.id = rc.chart_id
 WHERE rc.round_id = $1
-ORDER BY rc.chart_id ASC
+ORDER BY rc.order_index ASC
 `
 
 func (q *Queries) ListChartsInRound(ctx context.Context, roundID uuid.UUID) ([]Chart, error) {
@@ -64,9 +98,10 @@ func (q *Queries) ListChartsInRound(ctx context.Context, roundID uuid.UUID) ([]C
 	return items, nil
 }
 
-const removeChartFromRound = `-- name: RemoveChartFromRound :exec
+const removeChartFromRound = `-- name: RemoveChartFromRound :one
 DELETE FROM rounds_charts
 WHERE round_id = $1 AND chart_id = $2
+RETURNING order_index
 `
 
 type RemoveChartFromRoundParams struct {
@@ -74,7 +109,29 @@ type RemoveChartFromRoundParams struct {
 	ChartID uuid.UUID
 }
 
-func (q *Queries) RemoveChartFromRound(ctx context.Context, arg RemoveChartFromRoundParams) error {
-	_, err := q.db.ExecContext(ctx, removeChartFromRound, arg.RoundID, arg.ChartID)
+func (q *Queries) RemoveChartFromRound(ctx context.Context, arg RemoveChartFromRoundParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, removeChartFromRound, arg.RoundID, arg.ChartID)
+	var order_index int32
+	err := row.Scan(&order_index)
+	return order_index, err
+}
+
+const replaceRoundChart = `-- name: ReplaceRoundChart :exec
+WITH removed_chart AS (
+    DELETE FROM rounds_charts
+    WHERE round_id = $1 AND order_index = $2
+    RETURNING chart_id
+) INSERT INTO rounds_charts (round_id, chart_id, order_index)
+VALUES ($1, $3, $2)
+`
+
+type ReplaceRoundChartParams struct {
+	RoundID    uuid.UUID
+	OrderIndex int32
+	ChartID    uuid.UUID
+}
+
+func (q *Queries) ReplaceRoundChart(ctx context.Context, arg ReplaceRoundChartParams) error {
+	_, err := q.db.ExecContext(ctx, replaceRoundChart, arg.RoundID, arg.OrderIndex, arg.ChartID)
 	return err
 }

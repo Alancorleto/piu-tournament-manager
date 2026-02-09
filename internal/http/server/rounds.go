@@ -381,12 +381,38 @@ func (s *Server) RemoveChartFromRound(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.db.RemoveChartFromRound(
+	// Initiate transaction to avoid race conditions
+	tx, err := s.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to begin transaction")
+		return
+	}
+	defer tx.Rollback()
+
+	// Use WithTx to get a Queries instance that uses the transaction
+	txQueries := s.db.WithTx(tx)
+
+	removedOrderIndex, err := txQueries.RemoveChartFromRound(
 		ctx,
 		mapper.RemoveChartFromRoundParams(roundID, chartID),
 	)
 	if err != nil {
 		json.RespondWithError(w, http.StatusInternalServerError, "failed to remove chart from round: "+err.Error())
+		return
+	}
+
+	err = txQueries.FixMissingIndexFromRoundChartOrder(
+		ctx,
+		mapper.FixMissingIndexFromRoundChartOrderParams(roundID, removedOrderIndex),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to fix missing index in round chart order: "+err.Error())
+		return
+	}
+
+	// Commit transaction
+	if err = tx.Commit(); err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to commit transaction")
 		return
 	}
 
