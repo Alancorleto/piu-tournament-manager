@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -62,28 +63,43 @@ func (q *Queries) GetRoundChartCount(ctx context.Context, roundID uuid.UUID) (in
 }
 
 const listChartsInRound = `-- name: ListChartsInRound :many
-SELECT c.id, c.song_id, c.mode, c.level, c.player_count
-FROM charts c
-JOIN rounds_charts rc ON c.id = rc.chart_id
+SELECT
+  cws.chart_id, cws.mode, cws.level, cws.player_count, cws.song_id, cws.song_name, cws.song_title_url,
+  rc.order_index
+FROM rounds_charts rc
+JOIN charts_with_songs cws ON cws.chart_id = rc.chart_id
 WHERE rc.round_id = $1
-ORDER BY rc.order_index ASC
 `
 
-func (q *Queries) ListChartsInRound(ctx context.Context, roundID uuid.UUID) ([]Chart, error) {
+type ListChartsInRoundRow struct {
+	ChartID      uuid.UUID
+	Mode         int32
+	Level        int32
+	PlayerCount  int32
+	SongID       uuid.UUID
+	SongName     string
+	SongTitleUrl sql.NullString
+	OrderIndex   int32
+}
+
+func (q *Queries) ListChartsInRound(ctx context.Context, roundID uuid.UUID) ([]ListChartsInRoundRow, error) {
 	rows, err := q.db.QueryContext(ctx, listChartsInRound, roundID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Chart
+	var items []ListChartsInRoundRow
 	for rows.Next() {
-		var i Chart
+		var i ListChartsInRoundRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.SongID,
+			&i.ChartID,
 			&i.Mode,
 			&i.Level,
 			&i.PlayerCount,
+			&i.SongID,
+			&i.SongName,
+			&i.SongTitleUrl,
+			&i.OrderIndex,
 		); err != nil {
 			return nil, err
 		}
@@ -117,12 +133,10 @@ func (q *Queries) RemoveChartFromRound(ctx context.Context, arg RemoveChartFromR
 }
 
 const replaceRoundChart = `-- name: ReplaceRoundChart :exec
-WITH removed_chart AS (
-    DELETE FROM rounds_charts
-    WHERE round_id = $1 AND order_index = $2
-    RETURNING chart_id
-) INSERT INTO rounds_charts (round_id, chart_id, order_index)
-VALUES ($1, $3, $2)
+UPDATE rounds_charts
+SET chart_id = $3
+WHERE round_id = $1
+  AND order_index = $2
 `
 
 type ReplaceRoundChartParams struct {

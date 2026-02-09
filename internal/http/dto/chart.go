@@ -23,3 +23,12 @@ type ChartResponse struct {
 	Level       int32     `json:"level"`
 	PlayerCount int32     `json:"player_count"`
 }
+
+type ChartInRoundResponse struct {
+	ID          uuid.UUID    `json:"id"`
+	Song        SongResponse `json:"song"`
+	Mode        int32        `json:"mode"`
+	Level       int32        `json:"level"`
+	PlayerCount int32        `json:"player_count"`
+	OrderIndex  int32        `json:"order_index"`
+}

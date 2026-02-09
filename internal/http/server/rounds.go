@@ -434,10 +434,43 @@ func (s *Server) ListChartsInRound(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := make([]dto.ChartResponse, len(charts))
+	response := make([]dto.ChartInRoundResponse, len(charts))
 	for i, chart := range charts {
-		response[i] = mapper.ChartResponse(chart)
+		response[i] = mapper.ChartInRoundResponse(chart)
 	}
 
 	json.RespondWithJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) ReplaceRoundChart(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	orderIndex, err := mustPathInt32(r, "order_index")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	req, err := json.ParseRequestParameters[dto.ReplaceRoundChartRequest](r)
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	err = s.db.ReplaceRoundChart(
+		ctx,
+		mapper.ReplaceRoundChartParams(roundID, orderIndex, req.ChartID),
+	)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to replace chart in round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

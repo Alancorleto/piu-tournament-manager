@@ -20,3 +20,18 @@ func mustPathUUID(r *http.Request, key string) (uuid.UUID, error) {
 
 	return id, nil
 }
+
+func mustPathInt32(r *http.Request, key string) (int32, error) {
+	value := r.PathValue(key)
+	if value == "" {
+		return 0, fmt.Errorf("missing %s", key)
+	}
+
+	var intValue int32
+	_, err := fmt.Sscanf(value, "%d", &intValue)
+	if err != nil {
+		return 0, fmt.Errorf("invalid %s format", key)
+	}
+
+	return intValue, nil
+}

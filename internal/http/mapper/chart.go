@@ -34,3 +34,18 @@ func UpdateChartParams(id uuid.UUID, req dto.UpdateChartRequest) database.Update
 		PlayerCount: toNullInt32(req.PlayerCount),
 	}
 }
+
+func ChartInRoundResponse(dbChart database.ListChartsInRoundRow) dto.ChartInRoundResponse {
+	return dto.ChartInRoundResponse{
+		ID: dbChart.ChartID,
+		Song: dto.SongResponse{
+			ID:       dbChart.SongID,
+			Name:     dbChart.SongName,
+			TitleURL: fromNullString(dbChart.SongTitleUrl),
+		},
+		Mode:        dbChart.Mode,
+		Level:       dbChart.Level,
+		PlayerCount: dbChart.PlayerCount,
+		OrderIndex:  dbChart.OrderIndex,
+	}
+}

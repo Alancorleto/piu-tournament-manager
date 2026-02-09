@@ -30,6 +30,16 @@ type Chart struct {
 	PlayerCount int32
 }
 
+type ChartsWithSong struct {
+	ChartID      uuid.UUID
+	Mode         int32
+	Level        int32
+	PlayerCount  int32
+	SongID       uuid.UUID
+	SongName     string
+	SongTitleUrl sql.NullString
+}
+
 type Player struct {
 	ID                uuid.UUID
 	Nickname          string

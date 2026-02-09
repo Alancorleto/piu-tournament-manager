@@ -38,3 +38,7 @@ type AddPlayersToRoundBulkRequest struct {
 type UpdateRoundPlayersOrderBulkRequest struct {
 	PlayerIDs []uuid.UUID `json:"player_ids"`
 }
+
+type ReplaceRoundChartRequest struct {
+	ChartID uuid.UUID `json:"chart_id"`
+}

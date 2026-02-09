@@ -90,3 +90,11 @@ func FixMissingIndexFromRoundChartOrderParams(roundID uuid.UUID, removedOrderInd
 		OrderIndex: removedOrderIndex,
 	}
 }
+
+func ReplaceRoundChartParams(roundID uuid.UUID, orderIndex int32, chartID uuid.UUID) database.ReplaceRoundChartParams {
+	return database.ReplaceRoundChartParams{
+		RoundID:    roundID,
+		OrderIndex: orderIndex,
+		ChartID:    chartID,
+	}
+}

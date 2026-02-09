@@ -27,6 +27,7 @@ VALUES (
     $3,
     $4
 )
+ON CONFLICT (song_id, mode, level, player_count) DO UPDATE SET song_id = charts.song_id
 RETURNING id, song_id, mode, level, player_count
 `
 

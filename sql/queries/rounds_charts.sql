@@ -19,19 +19,18 @@ SET order_index = order_index - 1
 WHERE round_id = $1 AND order_index > $2;
 
 -- name: ListChartsInRound :many
-SELECT c.*
-FROM charts c
-JOIN rounds_charts rc ON c.id = rc.chart_id
-WHERE rc.round_id = $1
-ORDER BY rc.order_index ASC;
+SELECT
+  cws.*,
+  rc.order_index
+FROM rounds_charts rc
+JOIN charts_with_songs cws ON cws.chart_id = rc.chart_id
+WHERE rc.round_id = $1;
 
 -- name: ReplaceRoundChart :exec
-WITH removed_chart AS (
-    DELETE FROM rounds_charts
-    WHERE round_id = $1 AND order_index = $2
-    RETURNING chart_id
-) INSERT INTO rounds_charts (round_id, chart_id, order_index)
-VALUES ($1, $3, $2);
+UPDATE rounds_charts
+SET chart_id = $3
+WHERE round_id = $1
+  AND order_index = $2;
 
 -- name: GetRoundChartCount :one
 SELECT COUNT(*) AS count
