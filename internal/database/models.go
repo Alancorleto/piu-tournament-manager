@@ -6,10 +6,56 @@ package database
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type RoundState string
+
+const (
+	RoundStateNotStarted RoundState = "not_started"
+	RoundStateInProgress RoundState = "in_progress"
+	RoundStatePaused     RoundState = "paused"
+	RoundStateFinished   RoundState = "finished"
+)
+
+func (e *RoundState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RoundState(s)
+	case string:
+		*e = RoundState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RoundState: %T", src)
+	}
+	return nil
+}
+
+type NullRoundState struct {
+	RoundState RoundState
+	Valid      bool // Valid is true if RoundState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRoundState) Scan(value interface{}) error {
+	if value == nil {
+		ns.RoundState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RoundState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRoundState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RoundState), nil
+}
 
 type CategoriesPlayer struct {
 	CategoryID uuid.UUID
@@ -58,9 +104,9 @@ type Round struct {
 	Format          int32
 	Levels          sql.NullString
 	QualifiersCount int32
-	State           int32
 	CategoryID      uuid.UUID
 	OrderIndex      int32
+	CurrentState    RoundState
 }
 
 type RoundsChart struct {

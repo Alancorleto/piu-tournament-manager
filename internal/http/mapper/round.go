@@ -14,7 +14,7 @@ func RoundResponse(dbRound database.Round) dto.RoundResponse {
 		Format:          dbRound.Format,
 		Levels:          fromNullString(dbRound.Levels),
 		QualifiersCount: dbRound.QualifiersCount,
-		State:           dbRound.State,
+		State:           int32(RoundStateToDTO(dbRound.CurrentState)),
 		CategoryID:      dbRound.CategoryID,
 		OrderIndex:      dbRound.OrderIndex,
 	}
@@ -26,7 +26,7 @@ func CreateRoundParams(req dto.CreateRoundRequest, categoryID uuid.UUID) databas
 		Format:          req.Format,
 		Levels:          toNullString(req.Levels),
 		QualifiersCount: req.QualifiersCount,
-		State:           req.State,
+		CurrentState:    RoundStateFromDTO(dto.RoundState(req.State)),
 		CategoryID:      categoryID,
 	}
 }
@@ -38,7 +38,7 @@ func UpdateRoundParams(id uuid.UUID, req dto.UpdateRoundRequest) database.Update
 		Format:          toNullInt32(req.Format),
 		Levels:          toNullString(req.Levels),
 		QualifiersCount: toNullInt32(req.QualifiersCount),
-		State:           toNullInt32(req.State),
+		CurrentState:    toNullRoundState(req.State),
 	}
 }
 
@@ -96,5 +96,35 @@ func ReplaceRoundChartParams(roundID uuid.UUID, orderIndex int32, chartID uuid.U
 		RoundID:    roundID,
 		OrderIndex: orderIndex,
 		ChartID:    chartID,
+	}
+}
+
+func RoundStateFromDTO(state dto.RoundState) database.RoundState {
+	switch state {
+	case dto.RoundStateNotStarted:
+		return database.RoundStateNotStarted
+	case dto.RoundStateInProgress:
+		return database.RoundStateInProgress
+	case dto.RoundStatePaused:
+		return database.RoundStatePaused
+	case dto.RoundStateFinished:
+		return database.RoundStateFinished
+	default:
+		return database.RoundStateNotStarted // Default to not started if unknown value
+	}
+}
+
+func RoundStateToDTO(state database.RoundState) dto.RoundState {
+	switch state {
+	case database.RoundStateNotStarted:
+		return dto.RoundStateNotStarted
+	case database.RoundStateInProgress:
+		return dto.RoundStateInProgress
+	case database.RoundStatePaused:
+		return dto.RoundStatePaused
+	case database.RoundStateFinished:
+		return dto.RoundStateFinished
+	default:
+		return dto.RoundStateNotStarted // Default to not started if unknown value
 	}
 }

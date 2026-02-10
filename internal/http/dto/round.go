@@ -42,3 +42,12 @@ type UpdateRoundPlayersOrderBulkRequest struct {
 type ReplaceRoundChartRequest struct {
 	ChartID uuid.UUID `json:"chart_id"`
 }
+
+type RoundState int32
+
+const (
+	RoundStateNotStarted RoundState = iota
+	RoundStateInProgress
+	RoundStatePaused
+	RoundStateFinished
+)

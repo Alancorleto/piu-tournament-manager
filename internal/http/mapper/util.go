@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/alancorleto/piu-tournament-manager/internal/database"
+	"github.com/alancorleto/piu-tournament-manager/internal/http/dto"
 	"github.com/google/uuid"
 )
 
@@ -55,4 +57,11 @@ func toNullUUID(id *uuid.UUID) uuid.NullUUID {
 		return uuid.NullUUID{Valid: false}
 	}
 	return uuid.NullUUID{UUID: *id, Valid: true}
+}
+
+func toNullRoundState(state *int32) database.NullRoundState {
+	if state == nil {
+		return database.NullRoundState{Valid: false}
+	}
+	return database.NullRoundState{RoundState: RoundStateFromDTO(dto.RoundState(*state)), Valid: true}
 }

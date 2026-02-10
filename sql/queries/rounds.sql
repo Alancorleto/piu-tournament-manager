@@ -11,7 +11,7 @@ INSERT INTO rounds (
     format,
     levels,
     qualifiers_count,
-    state,
+    current_state,
     category_id,
     order_index
 )
@@ -40,7 +40,7 @@ SET
     format = COALESCE(sqlc.narg('Format'), format),
     levels = COALESCE(sqlc.narg('Levels'), levels),
     qualifiers_count = COALESCE(sqlc.narg('QualifiersCount'), qualifiers_count),
-    state = COALESCE(sqlc.narg('State'), state),
+    current_state = COALESCE(sqlc.narg('CurrentState'), current_state),
     category_id = COALESCE(sqlc.narg('CategoryId'), category_id),
     order_index = COALESCE(sqlc.narg('OrderIndex'), order_index)
 WHERE id = $1
