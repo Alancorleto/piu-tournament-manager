@@ -11,12 +11,6 @@ import (
 func (s *Server) CreateRound(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	tournamentID, err := mustPathUUID(r, "tournament_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
 	categoryID, err := mustPathUUID(r, "category_id")
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
@@ -26,12 +20,6 @@ func (s *Server) CreateRound(w http.ResponseWriter, r *http.Request) {
 	req, err := json.ParseRequestParameters[dto.CreateRoundRequest](r)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
-	if err != nil {
-		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
@@ -52,21 +40,9 @@ func (s *Server) CreateRound(w http.ResponseWriter, r *http.Request) {
 func (s *Server) ListRounds(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	tournamentID, err := mustPathUUID(r, "tournament_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
 	categoryID, err := mustPathUUID(r, "category_id")
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
-	if err != nil {
-		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
@@ -87,18 +63,6 @@ func (s *Server) ListRounds(w http.ResponseWriter, r *http.Request) {
 func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	tournamentID, err := mustPathUUID(r, "tournament_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	categoryID, err := mustPathUUID(r, "category_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
 	roundID, err := mustPathUUID(r, "round_id")
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
@@ -108,12 +72,6 @@ func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
 	requestParams, err := json.ParseRequestParameters[dto.UpdateRoundRequest](r)
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, "Error decoding parameters: "+err.Error())
-		return
-	}
-
-	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
-	if err != nil {
-		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
@@ -133,27 +91,9 @@ func (s *Server) UpdateRound(w http.ResponseWriter, r *http.Request) {
 func (s *Server) DeleteRound(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	tournamentID, err := mustPathUUID(r, "tournament_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	categoryID, err := mustPathUUID(r, "category_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
 	roundID, err := mustPathUUID(r, "round_id")
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
-	if err != nil {
-		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 
@@ -172,27 +112,9 @@ func (s *Server) DeleteRound(w http.ResponseWriter, r *http.Request) {
 func (s *Server) GetRound(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	tournamentID, err := mustPathUUID(r, "tournament_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	categoryID, err := mustPathUUID(r, "category_id")
-	if err != nil {
-		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
 	roundID, err := mustPathUUID(r, "round_id")
 	if err != nil {
 		json.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err = s.validateCategoryInTournament(ctx, categoryID, tournamentID)
-	if err != nil {
-		json.RespondWithError(w, http.StatusNotFound, "category not found in tournament")
 		return
 	}
 

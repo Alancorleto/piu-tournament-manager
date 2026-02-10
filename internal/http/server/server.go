@@ -29,6 +29,7 @@ func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("frontend"))))
 
 	mux.HandleFunc("GET /api/health", server.GetHealth)
+
 	mux.HandleFunc("POST /api/players", server.CreatePlayer)
 	mux.HandleFunc("GET /api/players", server.ListPlayers)
 	mux.HandleFunc("GET /api/players/{player_id}", server.GetPlayer)
@@ -41,26 +42,26 @@ func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}", server.DeleteTournament)
 
 	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories", server.CreateCategory)
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}", server.GetCategory)
 	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories", server.ListCategories)
-	mux.HandleFunc("PATCH /api/tournaments/{tournament_id}/categories/{category_id}", server.UpdateCategory)
-	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}", server.DeleteCategory)
+	mux.HandleFunc("GET /api/categories/{category_id}", server.GetCategory)
+	mux.HandleFunc("PATCH /api/categories/{category_id}", server.UpdateCategory)
+	mux.HandleFunc("DELETE /api/categories/{category_id}", server.DeleteCategory)
 
-	mux.HandleFunc("PUT /api/tournaments/{tournament_id}/categories/{category_id}/players/{player_id}", server.AddPlayerToCategory)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/players/bulk", server.AddPlayersToCategoryBulk)
-	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/players/{player_id}", server.RemovePlayerFromCategory)
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/players", server.ListPlayersInCategory)
+	mux.HandleFunc("PUT /api/categories/{category_id}/players/{player_id}", server.AddPlayerToCategory)
+	mux.HandleFunc("POST /api/categories/{category_id}/players/bulk", server.AddPlayersToCategoryBulk)
+	mux.HandleFunc("DELETE /api/categories/{category_id}/players/{player_id}", server.RemovePlayerFromCategory)
+	mux.HandleFunc("GET /api/categories/{category_id}/players", server.ListPlayersInCategory)
 
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds", server.CreateRound)
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.GetRound)
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds", server.ListRounds)
-	mux.HandleFunc("PATCH /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.UpdateRound)
-	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}", server.DeleteRound)
+	mux.HandleFunc("POST /api/categories/{category_id}/rounds", server.CreateRound)
+	mux.HandleFunc("GET /api/categories/{category_id}/rounds", server.ListRounds)
+	mux.HandleFunc("GET /api/rounds/{round_id}", server.GetRound)
+	mux.HandleFunc("PATCH /api/rounds/{round_id}", server.UpdateRound)
+	mux.HandleFunc("DELETE /api/rounds/{round_id}", server.DeleteRound)
 
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players", server.ListPlayersInRound)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players/bulk", server.AddPlayersToRoundBulk)
-	mux.HandleFunc("PUT /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players/bulk", server.UpdateRoundPlayersOrderBulk)
-	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/players/{player_id}", server.RemovePlayerFromRound)
+	mux.HandleFunc("GET /api/rounds/{round_id}/players", server.ListPlayersInRound)
+	mux.HandleFunc("POST /api/rounds/{round_id}/players/bulk", server.AddPlayersToRoundBulk)
+	mux.HandleFunc("PUT /api/rounds/{round_id}/players/bulk", server.UpdateRoundPlayersOrderBulk)
+	mux.HandleFunc("DELETE /api/rounds/{round_id}/players/{player_id}", server.RemovePlayerFromRound)
 
 	mux.HandleFunc("POST /api/songs", server.CreateSong)
 	mux.HandleFunc("GET /api/songs", server.ListSongs)
@@ -72,16 +73,16 @@ func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux.HandleFunc("PATCH /api/charts/{chart_id}", server.UpdateChart)
 	mux.HandleFunc("DELETE /api/charts/{chart_id}", server.DeleteChart)
 
-	mux.HandleFunc("GET /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts", server.ListChartsInRound)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts/{chart_id}", server.AddChartToRound)
-	mux.HandleFunc("PUT /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts/{order_index}", server.ReplaceRoundChart)
-	mux.HandleFunc("DELETE /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/charts/{chart_id}", server.RemoveChartFromRound)
+	mux.HandleFunc("GET /api/rounds/{round_id}/charts", server.ListChartsInRound)
+	mux.HandleFunc("POST /api/rounds/{round_id}/charts/{chart_id}", server.AddChartToRound)
+	mux.HandleFunc("PUT /api/rounds/{round_id}/charts/{order_index}", server.ReplaceRoundChart)
+	mux.HandleFunc("DELETE /api/rounds/{round_id}/charts/{chart_id}", server.RemoveChartFromRound)
 
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/start", server.StartRound)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/cancel-start", server.CancelRoundStart)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/pause", server.PauseRound)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/finish", server.FinishRound)
-	mux.HandleFunc("POST /api/tournaments/{tournament_id}/categories/{category_id}/rounds/{round_id}/resume", server.ResumeRound)
+	mux.HandleFunc("POST /api/rounds/{round_id}/start", server.StartRound)
+	mux.HandleFunc("POST /api/rounds/{round_id}/cancel-start", server.CancelRoundStart)
+	mux.HandleFunc("POST /api/rounds/{round_id}/pause", server.PauseRound)
+	mux.HandleFunc("POST /api/rounds/{round_id}/finish", server.FinishRound)
+	mux.HandleFunc("POST /api/rounds/{round_id}/resume", server.ResumeRound)
 
 	return &server
 }
