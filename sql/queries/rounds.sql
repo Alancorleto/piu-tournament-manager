@@ -49,3 +49,28 @@ RETURNING *;
 -- name: DeleteRound :exec
 DELETE FROM rounds
 WHERE id = $1;
+
+-- name: StartRound :exec
+UPDATE rounds
+SET current_state = 'in_progress'
+WHERE id = $1 AND current_state = 'not_started';
+
+-- name: CancelRoundStart :exec
+UPDATE rounds
+SET current_state = 'not_started'
+WHERE id = $1 AND current_state = 'in_progress';
+
+-- name: PauseRound :exec
+UPDATE rounds
+SET current_state = 'paused'
+WHERE id = $1 AND current_state = 'in_progress';
+
+-- name: FinishRound :exec
+UPDATE rounds
+SET current_state = 'finished'
+WHERE id = $1 AND current_state = 'in_progress';
+
+-- name: ResumeRound :exec
+UPDATE rounds
+SET current_state = 'in_progress'
+WHERE id = $1 AND (current_state = 'paused' OR current_state = 'finished');

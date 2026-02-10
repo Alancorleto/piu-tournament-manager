@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const cancelRoundStart = `-- name: CancelRoundStart :exec
+UPDATE rounds
+SET current_state = 'not_started'
+WHERE id = $1 AND current_state = 'in_progress'
+`
+
+func (q *Queries) CancelRoundStart(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, cancelRoundStart, id)
+	return err
+}
+
 const createRound = `-- name: CreateRound :one
 INSERT INTO rounds (
     id,
@@ -79,6 +90,17 @@ func (q *Queries) DeleteRound(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const finishRound = `-- name: FinishRound :exec
+UPDATE rounds
+SET current_state = 'finished'
+WHERE id = $1 AND current_state = 'in_progress'
+`
+
+func (q *Queries) FinishRound(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, finishRound, id)
+	return err
+}
+
 const getRound = `-- name: GetRound :one
 SELECT id, name, format, levels, qualifiers_count, category_id, order_index, current_state
 FROM rounds
@@ -138,6 +160,39 @@ func (q *Queries) ListRounds(ctx context.Context, categoryID uuid.UUID) ([]Round
 		return nil, err
 	}
 	return items, nil
+}
+
+const pauseRound = `-- name: PauseRound :exec
+UPDATE rounds
+SET current_state = 'paused'
+WHERE id = $1 AND current_state = 'in_progress'
+`
+
+func (q *Queries) PauseRound(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, pauseRound, id)
+	return err
+}
+
+const resumeRound = `-- name: ResumeRound :exec
+UPDATE rounds
+SET current_state = 'in_progress'
+WHERE id = $1 AND (current_state = 'paused' OR current_state = 'finished')
+`
+
+func (q *Queries) ResumeRound(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, resumeRound, id)
+	return err
+}
+
+const startRound = `-- name: StartRound :exec
+UPDATE rounds
+SET current_state = 'in_progress'
+WHERE id = $1 AND current_state = 'not_started'
+`
+
+func (q *Queries) StartRound(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, startRound, id)
+	return err
 }
 
 const updateRound = `-- name: UpdateRound :one

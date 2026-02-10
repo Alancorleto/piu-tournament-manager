@@ -474,3 +474,93 @@ func (s *Server) ReplaceRoundChart(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (s *Server) StartRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.StartRound(ctx, roundID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to start round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) CancelRoundStart(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.CancelRoundStart(ctx, roundID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to cancel round start: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) PauseRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.PauseRound(ctx, roundID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to pause round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) FinishRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.FinishRound(ctx, roundID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to finish round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) ResumeRound(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	roundID, err := mustPathUUID(r, "round_id")
+	if err != nil {
+		json.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.db.ResumeRound(ctx, roundID)
+	if err != nil {
+		json.RespondWithError(w, http.StatusInternalServerError, "failed to resume round: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
