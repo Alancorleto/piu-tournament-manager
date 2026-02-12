@@ -84,5 +84,11 @@ func New(addr string, dbConn *sql.DB, db *database.Queries) *Server {
 	mux.HandleFunc("POST /api/rounds/{round_id}/finish", server.FinishRound)
 	mux.HandleFunc("POST /api/rounds/{round_id}/resume", server.ResumeRound)
 
+	mux.HandleFunc("POST /api/rounds/{round_id}/scores", server.CreateScore)
+	mux.HandleFunc("GET /api/rounds/{round_id}/scores", server.ListScores)
+	mux.HandleFunc("GET /api/scores/{score_id}", server.GetScore)
+	mux.HandleFunc("PATCH /api/scores/{score_id}", server.UpdateScore)
+	mux.HandleFunc("DELETE /api/scores/{score_id}", server.DeleteScore)
+
 	return &server
 }

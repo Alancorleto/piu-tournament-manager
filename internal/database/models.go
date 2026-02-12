@@ -13,6 +13,62 @@ import (
 	"github.com/google/uuid"
 )
 
+type Grade string
+
+const (
+	GradeF    Grade = "F"
+	GradeD    Grade = "D"
+	GradeC    Grade = "C"
+	GradeB    Grade = "B"
+	GradeA    Grade = "A"
+	GradeAP   Grade = "A_P"
+	GradeAA   Grade = "AA"
+	GradeAAP  Grade = "AA_P"
+	GradeAAA  Grade = "AAA"
+	GradeAAAP Grade = "AAA_P"
+	GradeS    Grade = "S"
+	GradeSP   Grade = "S_P"
+	GradeSS   Grade = "SS"
+	GradeSSP  Grade = "SS_P"
+	GradeSSS  Grade = "SSS"
+	GradeSSSP Grade = "SSS_P"
+)
+
+func (e *Grade) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Grade(s)
+	case string:
+		*e = Grade(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Grade: %T", src)
+	}
+	return nil
+}
+
+type NullGrade struct {
+	Grade Grade
+	Valid bool // Valid is true if Grade is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGrade) Scan(value interface{}) error {
+	if value == nil {
+		ns.Grade, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Grade.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGrade) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Grade), nil
+}
+
 type RoundState string
 
 const (
@@ -119,6 +175,24 @@ type RoundsPlayer struct {
 	RoundID    uuid.UUID
 	PlayerID   uuid.UUID
 	OrderIndex int32
+}
+
+type Score struct {
+	ID        uuid.UUID
+	RoundID   uuid.UUID
+	PlayerID  uuid.UUID
+	ChartID   uuid.UUID
+	Score     int32
+	Perfect   sql.NullInt32
+	Great     sql.NullInt32
+	Good      sql.NullInt32
+	Bad       sql.NullInt32
+	Miss      sql.NullInt32
+	MaxCombo  sql.NullInt32
+	Kcal      sql.NullFloat64
+	Grade     NullGrade
+	StagePass sql.NullBool
+	VideoUrl  sql.NullString
 }
 
 type Song struct {

@@ -44,6 +44,13 @@ func toNullInt32(i *int32) sql.NullInt32 {
 	return sql.NullInt32{Int32: *i, Valid: true}
 }
 
+func fromNullInt32(ni sql.NullInt32) *int32 {
+	if !ni.Valid {
+		return nil
+	}
+	return &ni.Int32
+}
+
 func ParseUUID(s string) uuid.UUID {
 	parsed, err := uuid.Parse(s)
 	if err != nil {
@@ -64,4 +71,41 @@ func toNullRoundState(state *int32) database.NullRoundState {
 		return database.NullRoundState{Valid: false}
 	}
 	return database.NullRoundState{RoundState: RoundStateFromDTO(dto.RoundState(*state)), Valid: true}
+}
+
+func fromNullGrade(grade database.NullGrade) *dto.Grade {
+	if !grade.Valid {
+		return nil
+	}
+	dtoGrade := GradeToDTO(grade.Grade)
+	return &dtoGrade
+}
+
+func fromNullBool(nb sql.NullBool) *bool {
+	if !nb.Valid {
+		return nil
+	}
+	return &nb.Bool
+}
+
+func toNullBool(b *bool) sql.NullBool {
+	if b == nil {
+		return sql.NullBool{Valid: false}
+	}
+	return sql.NullBool{Bool: *b, Valid: true}
+}
+
+func toNullFloat32(f *float32) sql.NullFloat64 {
+	if f == nil {
+		return sql.NullFloat64{Valid: false}
+	}
+	return sql.NullFloat64{Float64: float64(*f), Valid: true}
+}
+
+func fromNullFloat32(nf sql.NullFloat64) *float32 {
+	if !nf.Valid {
+		return nil
+	}
+	f := float32(nf.Float64)
+	return &f
 }
